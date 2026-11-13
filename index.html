@@ -1,1 +1,514 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Assistant - ผู้ช่วยอัจฉริยะของคุณในการเรียนรู้</title>
+    <!-- Google Fonts: Prompt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#070B19',
+                            900: '#0B132B',
+                            850: '#101B3B',
+                            800: '#162447',
+                        },
+                        cyan: {
+                            450: '#00D2FF',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #070B19;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(0, 210, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.08) 0%, transparent 45%);
+            color: #FFFFFF;
+            min-height: 100vh;
+        }
 
+        .glass-card {
+            background: rgba(16, 27, 59, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 210, 255, 0.35);
+            box-shadow: 0 12px 30px -10px rgba(0, 210, 255, 0.15);
+        }
+
+        .card-active-blue {
+            background: linear-gradient(135deg, rgba(14, 58, 108, 0.85) 0%, rgba(16, 27, 59, 0.9) 100%);
+            border-color: rgba(0, 210, 255, 0.5);
+            box-shadow: 0 8px 25px -8px rgba(0, 210, 255, 0.25);
+        }
+
+        .card-active-teal {
+            background: linear-gradient(135deg, rgba(13, 74, 94, 0.85) 0%, rgba(16, 27, 59, 0.9) 100%);
+            border-color: rgba(20, 184, 166, 0.5);
+            box-shadow: 0 8px 25px -8px rgba(20, 184, 166, 0.25);
+        }
+
+        .card-active-purple {
+            background: linear-gradient(135deg, rgba(67, 29, 114, 0.85) 0%, rgba(16, 27, 59, 0.9) 100%);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 8px 25px -8px rgba(139, 92, 246, 0.25);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(90deg, #00B4DB 0%, #6366F1 55%, #8B5CF6 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            opacity: 0.92;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .nav-link {
+            position: relative;
+            color: #94A3B8;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #FFFFFF;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background-color: #00D2FF;
+            border-radius: 99px;
+            box-shadow: 0 0 8px #00D2FF;
+        }
+
+        .dropzone-border {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23334155' stroke-width='2' stroke-dasharray='8%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+            transition: all 0.25s ease;
+        }
+
+        .dropzone-border:hover, .dropzone-border.dragover {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%2300D2FF' stroke-width='2' stroke-dasharray='8%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+            background-color: rgba(0, 210, 255, 0.04);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070B19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- 1. Top Navigation Bar -->
+    <header class="border-b border-white/10 bg-[#070B19]/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center gap-1.5 text-xl font-bold tracking-tight">
+                <span class="text-[#00D2FF]">AI</span>
+                <span class="text-white">Study Assistant</span>
+            </a>
+
+            <!-- Desktop Menu -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                <a href="#" onclick="setActiveNav(this)" class="nav-link active">หน้าแรก</a>
+                <a href="#lessons" onclick="setActiveNav(this)" class="nav-link">บทเรียนของฉัน</a>
+                <a href="#history" onclick="setActiveNav(this)" class="nav-link">ประวัติการเรียน</a>
+                <a href="#settings" onclick="setActiveNav(this)" class="nav-link">ตั้งค่า</a>
+            </nav>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden text-slate-300 hover:text-white p-2">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-white/10 bg-[#0B132B] px-4 py-3 space-y-2 text-sm">
+            <a href="#" class="block py-2 text-[#00D2FF] font-medium">หน้าแรก</a>
+            <a href="#lessons" class="block py-2 text-slate-300 hover:text-white">บทเรียนของฉัน</a>
+            <a href="#history" class="block py-2 text-slate-300 hover:text-white">ประวัติการเรียน</a>
+            <a href="#settings" class="block py-2 text-slate-300 hover:text-white">ตั้งค่า</a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+
+        <!-- 2. Hero Greeting Section -->
+        <section class="space-y-2">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">
+                ยินดีต้อนรับสู่ <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00D2FF] to-[#8B5CF6]">AI Study Assistant</span>
+            </h1>
+            <p class="text-slate-400 text-sm sm:text-base font-light">
+                ผู้ช่วยอัจฉริยะของคุณในการเรียนรู้ สรุปบทเรียน ถาม-ตอบข้อสงสัย และสร้างแบบทดสอบอัตโนมัติ
+            </p>
+        </section>
+
+        <!-- 3. 3 Main Feature Cards -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- Card 1: สรุปบทเรียน -->
+            <div id="card-summary" onclick="selectMode('summary')" class="glass-card card-active-blue rounded-2xl p-6 cursor-pointer flex items-start gap-4 relative overflow-hidden group">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-[#00D2FF] group-hover:scale-110 transition-transform">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-white">สรุปบทเรียน</h2>
+                        <span id="badge-summary" class="text-[10px] px-2 py-0.5 rounded-full bg-[#00D2FF]/20 text-[#00D2FF] border border-[#00D2FF]/30">กำลังเลือก</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-300/80 leading-relaxed font-light">
+                        สรุปเนื้อหาให้เข้าใจง่าย รวดเร็ว จับประเด็นสำคัญครบถ้วน
+                    </p>
+                </div>
+            </div>
+
+            <!-- Card 2: ถาม AI -->
+            <div id="card-qa" onclick="selectMode('qa')" class="glass-card rounded-2xl p-6 cursor-pointer flex items-start gap-4 relative overflow-hidden group">
+                <div class="w-12 h-12 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center shrink-0 text-teal-400 group-hover:scale-110 transition-transform">
+                    <i data-lucide="message-square-more" class="w-6 h-6"></i>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-white">ถาม AI</h2>
+                        <span id="badge-qa" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-400/20 text-teal-300 border border-teal-400/30">กำลังเลือก</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-300/80 leading-relaxed font-light">
+                        ถามคำถาม ได้คำตอบทันที อธิบายหัวข้อที่ซับซ้อนให้เข้าใจง่าย
+                    </p>
+                </div>
+            </div>
+
+            <!-- Card 3: สร้างข้อสอบ -->
+            <div id="card-quiz" onclick="selectMode('quiz')" class="glass-card rounded-2xl p-6 cursor-pointer flex items-start gap-4 relative overflow-hidden group">
+                <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center shrink-0 text-purple-400 group-hover:scale-110 transition-transform">
+                    <i data-lucide="clipboard-check" class="w-6 h-6"></i>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-white">สร้างข้อสอบ</h2>
+                        <span id="badge-quiz" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-purple-400/20 text-purple-300 border border-purple-400/30">กำลังเลือก</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-300/80 leading-relaxed font-light">
+                        สร้างแบบฝึกหัดและข้อสอบอัตโนมัติ พร้อมเฉลยละเอียด
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Content Input & Workspace Area -->
+        <section class="glass-card rounded-2xl p-6 sm:p-8 space-y-5">
+            <!-- Section Header + Input Mode Toggle -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-2 h-6 rounded-full bg-[#00D2FF]"></div>
+                    <h3 class="text-lg sm:text-xl font-semibold text-white">วางเนื้อหาบทเรียนของคุณ</h3>
+                </div>
+
+                <!-- Switch Tab: Upload File vs Paste Text -->
+                <div class="inline-flex rounded-lg bg-[#070B19]/80 p-1 border border-white/10 self-start">
+                    <button id="tab-file" onclick="switchInputType('file')" class="px-3.5 py-1.5 rounded-md text-xs font-medium bg-[#162447] text-[#00D2FF] shadow transition">
+                        <span class="flex items-center gap-1.5"><i data-lucide="upload" class="w-3.5 h-3.5"></i> อัปโหลดไฟล์</span>
+                    </button>
+                    <button id="tab-text" onclick="switchInputType('text')" class="px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition">
+                        <span class="flex items-center gap-1.5"><i data-lucide="align-left" class="w-3.5 h-3.5"></i> วางข้อความ</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 70/30 Split Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                
+                <!-- Left Column (70% -> 8 cols on 12-col grid) -->
+                <div class="lg:col-span-8 flex flex-col">
+                    <!-- Mode A: File Dropzone -->
+                    <div id="input-file-area" onclick="document.getElementById('file-upload').click()" class="dropzone-border rounded-xl p-8 flex-1 min-h-[210px] flex flex-col items-center justify-center text-center cursor-pointer group">
+                        <input type="file" id="file-upload" class="hidden" accept=".pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
+                        
+                        <div class="w-14 h-14 rounded-full bg-[#162447]/80 border border-white/10 flex items-center justify-center mb-3 text-slate-300 group-hover:text-[#00D2FF] group-hover:scale-110 transition-all">
+                            <i data-lucide="upload" class="w-6 h-6"></i>
+                        </div>
+                        
+                        <p id="file-name-display" class="text-sm sm:text-base font-medium text-white mb-1">
+                            วางหรืออัปโหลดเนื้อหาที่นี่
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            รองรับไฟล์เอกสาร, PDF, หรือข้อความ (ขนาดไม่เกิน 10MB)
+                        </p>
+                        <button type="button" onclick="event.stopPropagation(); loadSampleText()" class="mt-4 text-xs text-[#00D2FF] hover:underline flex items-center gap-1">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> ทดลองใช้ตัวอย่างเนื้อหาบทเรียน (IoT & Cloud)
+                        </button>
+                    </div>
+
+                    <!-- Mode B: Textarea Paste -->
+                    <div id="input-text-area" class="hidden flex-1 flex flex-col">
+                        <textarea id="lesson-textarea" rows="7" placeholder="วางเนื้อหาบทเรียน สไลด์บรรยาย หรือพิมพ์คำถามที่คุณต้องการให้ AI ช่วยวิเคราะห์ที่นี่..." class="w-full flex-1 rounded-xl bg-[#070B19]/90 border border-slate-700/80 focus:border-[#00D2FF] focus:ring-1 focus:ring-[#00D2FF] p-4 text-sm text-white placeholder-slate-500 outline-none resize-none transition"></textarea>
+                    </div>
+                </div>
+
+                <!-- Right Column (30% -> 4 cols on 12-col grid) -->
+                <div class="lg:col-span-4 rounded-xl bg-[#070B19]/60 border border-white/5 p-6 flex flex-col items-center justify-center text-center space-y-5">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-[#00D2FF]/20 to-[#8B5CF6]/20 border border-white/10 flex items-center justify-center text-[#00D2FF]">
+                        <i data-lucide="brain-circuit" class="w-6 h-6"></i>
+                    </div>
+                    
+                    <div class="space-y-1.5">
+                        <p id="action-title" class="text-sm sm:text-base font-medium text-white">
+                            ให้ AI วิเคราะห์เนื้อหา
+                        </p>
+                        <p id="action-desc" class="text-xs text-slate-400 leading-relaxed">
+                            เพื่อสรุปและจัดทำประเด็นสำคัญให้อ่านเข้าใจง่ายในไม่กี่วินาที
+                        </p>
+                    </div>
+
+                    <button id="analyze-btn" onclick="runAIDemo()" class="btn-gradient w-full py-3 px-6 rounded-xl font-semibold text-sm text-white shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span id="btn-text">วิเคราะห์</span>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 5. Interactive Output / Result Preview Section (Hidden until Analyze is clicked) -->
+        <section id="result-section" class="hidden glass-card rounded-2xl p-6 sm:p-8 border border-[#00D2FF]/30 space-y-6 animate-fade-in">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-3 w-3 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00D2FF] opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-[#00D2FF]"></span>
+                    </span>
+                    <h3 id="result-header" class="text-lg font-semibold text-white">ผลลัพธ์การวิเคราะห์จาก AI</h3>
+                </div>
+                <button onclick="copyResult()" class="text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 flex items-center gap-1.5 transition">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> คัดลอกผลลัพธ์
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden py-10 flex flex-col items-center justify-center text-center space-y-3">
+                <div class="w-10 h-10 border-4 border-[#00D2FF]/30 border-t-[#00D2FF] rounded-full animate-spin"></div>
+                <p class="text-sm text-slate-300">กำลังส่งข้อมูลไปยัง Gemini AI API เพื่อประมวลผล...</p>
+            </div>
+
+            <!-- Dynamic Output Content -->
+            <div id="output-content" class="text-sm text-slate-200 leading-relaxed space-y-4"></div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 mt-16 py-6 text-center text-xs text-slate-500">
+        <p>โครงงานระดับประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) — ระบบผู้ช่วยการเรียนรู้และสร้างแบบทดสอบอัจฉริยะ (AI Study Assistant)</p>
+    </footer>
+
+    <!-- Interactive JavaScript -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        let currentMode = 'summary'; // 'summary' | 'qa' | 'quiz'
+        let currentInputType = 'file'; // 'file' | 'text'
+
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Navigation Active State
+        function setActiveNav(el) {
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        // Select Feature Mode (Card 1, 2, 3)
+        function selectMode(mode) {
+            currentMode = mode;
+
+            // Reset card styles
+            const cards = {
+                summary: document.getElementById('card-summary'),
+                qa: document.getElementById('card-qa'),
+                quiz: document.getElementById('card-quiz')
+            };
+            const badges = {
+                summary: document.getElementById('badge-summary'),
+                qa: document.getElementById('badge-qa'),
+                quiz: document.getElementById('badge-quiz')
+            };
+
+            Object.keys(cards).forEach(key => {
+                cards[key].classList.remove('card-active-blue', 'card-active-teal', 'card-active-purple');
+                badges[key].classList.add('hidden');
+            });
+
+            // Apply active style
+            const actionTitle = document.getElementById('action-title');
+            const actionDesc = document.getElementById('action-desc');
+            const btnText = document.getElementById('btn-text');
+
+            if (mode === 'summary') {
+                cards.summary.classList.add('card-active-blue');
+                badges.summary.classList.remove('hidden');
+                actionTitle.textContent = 'ให้ AI วิเคราะห์เนื้อหา';
+                actionDesc.textContent = 'เพื่อสรุปและจัดทำประเด็นสำคัญให้อ่านเข้าใจง่ายในไม่กี่วินาที';
+                btnText.textContent = 'วิเคราะห์และสรุป';
+            } else if (mode === 'qa') {
+                cards.qa.classList.add('card-active-teal');
+                badges.qa.classList.remove('hidden');
+                actionTitle.textContent = 'ถามข้อสงสัยกับ AI Tutor';
+                actionDesc.textContent = 'AI จะอธิบายเนื้อหาที่ซับซ้อนพร้อมยกตัวอย่างประกอบให้เข้าใจง่าย';
+                btnText.textContent = 'ส่งคำถามให้ AI';
+                switchInputType('text');
+            } else if (mode === 'quiz') {
+                cards.quiz.classList.add('card-active-purple');
+                badges.quiz.classList.remove('hidden');
+                actionTitle.textContent = 'สร้างแบบทดสอบอัตโนมัติ';
+                actionDesc.textContent = 'สร้างข้อสอบปรนัยพร้อมเฉลยละเอียดจากเนื้อหาบทเรียนของคุณ';
+                btnText.textContent = 'สร้างข้อสอบ';
+            }
+        }
+
+        // Switch Input Type (File vs Text)
+        function switchInputType(type) {
+            currentInputType = type;
+            const tabFile = document.getElementById('tab-file');
+            const tabText = document.getElementById('tab-text');
+            const areaFile = document.getElementById('input-file-area');
+            const areaText = document.getElementById('input-text-area');
+
+            if (type === 'file') {
+                tabFile.className = 'px-3.5 py-1.5 rounded-md text-xs font-medium bg-[#162447] text-[#00D2FF] shadow transition';
+                tabText.className = 'px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition';
+                areaFile.classList.remove('hidden');
+                areaText.classList.add('hidden');
+            } else {
+                tabText.className = 'px-3.5 py-1.5 rounded-md text-xs font-medium bg-[#162447] text-[#00D2FF] shadow transition';
+                tabFile.className = 'px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition';
+                areaText.classList.remove('hidden');
+                areaFile.classList.add('hidden');
+            }
+        }
+
+        // Handle File Selection
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('file-name-display').innerHTML = 
+                    `<span class="text-[#00D2FF]">เลือกไฟล์แล้ว:</span> ${file.name}`;
+            }
+        }
+
+        // Load Sample Lesson Content
+        function loadSampleText() {
+            switchInputType('text');
+            document.getElementById('lesson-textarea').value = 
+                "บทที่ 3: การเชื่อมต่อระบบ IoT ผ่านโปรโตคอล HTTP และ REST API\n" +
+                "REST API (Representational State Transfer) คือมาตรฐานการรับ-ส่งข้อมูลระหว่างอุปกรณ์ไมโครคอนโทรลเลอร์ (เช่น ESP32) กับเซิร์ฟเวอร์ผ่านเครือข่ายอินเทอร์เน็ต โดยใช้เมธอดหลัก ได้แก่ GET สำหรับดึงข้อมูล และ POST สำหรับส่งข้อมูลไปประมวลผล รูปแบบข้อมูลที่นิยมใช้คือ JSON (JavaScript Object Notation) เนื่องจากมีขนาดเล็ก อ่านง่าย และประมวลผลได้รวดเร็ว";
+        }
+
+        // Simulate AI Processing (Prototype Demo)
+        function runAIDemo() {
+            const resultSection = document.getElementById('result-section');
+            const loadingState = document.getElementById('loading-state');
+            const outputContent = document.getElementById('output-content');
+            const resultHeader = document.getElementById('result-header');
+
+            resultSection.classList.remove('hidden');
+            loadingState.classList.remove('hidden');
+            outputContent.innerHTML = '';
+
+            // Scroll to result
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            setTimeout(() => {
+                loadingState.classList.add('hidden');
+
+                if (currentMode === 'summary') {
+                    resultHeader.textContent = 'สรุปประเด็นสำคัญจากบทเรียน (AI Summary)';
+                    outputContent.innerHTML = `
+                        <div class="p-4 rounded-xl bg-[#070B19]/80 border border-white/5 space-y-3">
+                            <h4 class="font-semibold text-[#00D2FF] text-base">หัวข้อ: การเชื่อมต่อระบบ IoT ผ่านโปรโตคอล HTTP และ REST API</h4>
+                            <ul class="list-disc list-inside space-y-2 text-slate-300">
+                                <li><strong>REST API คืออะไร:</strong> มาตรฐานการสื่อสารข้อมูลระหว่างบอร์ดไมโครคอนโทรลเลอร์ (เช่น ESP32) และระบบ Cloud ผ่านอินเทอร์เน็ต</li>
+                                <li><strong>เมธอดสำคัญที่ต้องรู้:</strong> <code class="text-cyan-300 bg-cyan-950/60 px-1.5 py-0.5 rounded">GET</code> ใช้สำหรับร้องขอ/ดึงข้อมูล และ <code class="text-purple-300 bg-purple-950/60 px-1.5 py-0.5 rounded">POST</code> ใช้สำหรับส่งข้อมูลขึ้นไปบันทึกหรือประมวลผล</li>
+                                <li><strong>รูปแบบข้อมูล (JSON):</strong> นิยมใช้เพราะโครงสร้างกะทัดรัด ประหยัดแบนด์วิดท์ และรองรับทุกภาษาเขียนโปรแกรม</li>
+                            </ul>
+                        </div>
+                    `;
+                } else if (currentMode === 'qa') {
+                    resultHeader.textContent = 'คำอธิบายเพิ่มเติมจาก AI Tutor';
+                    outputContent.innerHTML = `
+                        <div class="p-4 rounded-xl bg-[#070B19]/80 border border-teal-500/20 space-y-3">
+                            <p class="text-teal-300 font-medium">คำอธิบายแบบเข้าใจง่าย:</p>
+                            <p class="text-slate-300">ให้นึกภาพว่า <strong>REST API</strong> เปรียบเสมือน <em>"พนักงานเสิร์ฟในร้านอาหาร"</em> ครับ บอร์ด ESP32 คือลูกค้า ส่วนเซิร์ฟเวอร์ AI คือห้องครัว เมื่อบอร์ดต้องการข้อมูล (GET) พนักงานเสิร์ฟจะไปหยิบอาหารจากครัวมาให้ในกล่องที่จัดระเบียบเรียบร้อยซึ่งก็คือไฟล์ <strong>JSON</strong> นั่นเองครับ</p>
+                        </div>
+                    `;
+                } else if (currentMode === 'quiz') {
+                    resultHeader.textContent = 'แบบทดสอบทบทวนความเข้าใจ (AI Generated Quiz)';
+                    outputContent.innerHTML = `
+                        <div class="p-4 rounded-xl bg-[#070B19]/80 border border-purple-500/20 space-y-4">
+                            <p class="font-medium text-white">ข้อที่ 1: หากต้องการส่งค่าจากเซนเซอร์บนบอร์ด ESP32 ขึ้นไปให้ AI API ประมวลผล ควรเลือกใช้ HTTP Method ใด?</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                                <div class="p-3 rounded-lg bg-white/5 border border-white/10">ก. HTTP GET</div>
+                                <div class="p-3 rounded-lg bg-emerald-500/20 border border-emerald-400/50 text-emerald-200 font-medium">ข. HTTP POST (คำตอบที่ถูกต้อง ✓)</div>
+                                <div class="p-3 rounded-lg bg-white/5 border border-white/10">ค. HTTP DELETE</div>
+                                <div class="p-3 rounded-lg bg-white/5 border border-white/10">ง. FTP TRANSFER</div>
+                            </div>
+                            <p class="text-xs text-slate-400 bg-white/5 p-3 rounded-lg">
+                                <strong class="text-purple-300">คำอธิบายเฉลย:</strong> เมธอด POST ใช้สำหรับส่งข้อมูล (Payload/Body) จากฝั่ง Client ไปยัง Server เพื่อทำการบันทึกหรือประมวลผลข้อมูลใหม่
+                            </p>
+                        </div>
+                    `;
+                }
+            }, 900);
+        }
+
+        // Copy Output Text
+        function copyResult() {
+            const text = document.getElementById('output-content').innerText;
+            navigator.clipboard.writeText(text);
+            alert('คัดลอกผลลัพธ์ไปยังคลิปบอร์ดแล้ว!');
+        }
+    </script>
+</body>
+</html>
