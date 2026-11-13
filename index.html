@@ -12,25 +12,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- PDF.js สำหรับอ่านข้อความจากไฟล์ PDF -->
+    <!-- PDF.js สำหรับอ่านข้อความจากไฟล์ PDF จริงบนหน้าเว็บ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Prompt', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Prompt', 'sans-serif'] },
                     colors: {
-                        navy: {
-                            950: '#070B19',
-                            900: '#0B132B',
-                            850: '#101B3B',
-                            800: '#162447',
-                        },
-                        cyan: {
-                            450: '#00D2FF',
-                        }
+                        navy: { 950: '#070B19', 900: '#0B132B', 850: '#101B3B', 800: '#162447' },
+                        cyan: { 450: '#00D2FF' }
                     }
                 }
             }
@@ -45,78 +37,49 @@
             color: #FFFFFF;
             min-height: 100vh;
         }
-
         .glass-card {
             background: rgba(16, 27, 59, 0.65);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .glass-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-3px);
             border-color: rgba(0, 210, 255, 0.35);
-            box-shadow: 0 12px 30px -10px rgba(0, 210, 255, 0.15);
         }
-
         .card-active-blue {
             background: linear-gradient(135deg, rgba(14, 58, 108, 0.85) 0%, rgba(16, 27, 59, 0.9) 100%);
             border-color: rgba(0, 210, 255, 0.5);
             box-shadow: 0 8px 25px -8px rgba(0, 210, 255, 0.25);
         }
-
         .card-active-teal {
             background: linear-gradient(135deg, rgba(13, 74, 94, 0.85) 0%, rgba(16, 27, 59, 0.9) 100%);
             border-color: rgba(20, 184, 166, 0.5);
             box-shadow: 0 8px 25px -8px rgba(20, 184, 166, 0.25);
         }
-
         .card-active-purple {
             background: linear-gradient(135deg, rgba(67, 29, 114, 0.85) 0%, rgba(16, 27, 59, 0.9) 100%);
             border-color: rgba(139, 92, 246, 0.5);
             box-shadow: 0 8px 25px -8px rgba(139, 92, 246, 0.25);
         }
-
         .btn-gradient {
             background: linear-gradient(90deg, #00B4DB 0%, #6366F1 55%, #8B5CF6 100%);
             transition: all 0.3s ease;
         }
-
         .btn-gradient:hover {
             opacity: 0.92;
             box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
             transform: translateY(-1px);
         }
-
-        .nav-link {
-            position: relative;
-            color: #94A3B8;
-            transition: color 0.2s ease;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            color: #FFFFFF;
-        }
-
+        .nav-link { position: relative; color: #94A3B8; transition: color 0.2s ease; }
+        .nav-link:hover, .nav-link.active { color: #FFFFFF; }
         .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 24px;
-            height: 3px;
-            background-color: #00D2FF;
-            border-radius: 99px;
-            box-shadow: 0 0 8px #00D2FF;
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            width: 24px; height: 3px; background-color: #00D2FF; border-radius: 99px; box-shadow: 0 0 8px #00D2FF;
         }
-
         .dropzone-border {
             background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23334155' stroke-width='2' stroke-dasharray='8%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
-            transition: all 0.25s ease;
         }
-
         .dropzone-border:hover {
             background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%2300D2FF' stroke-width='2' stroke-dasharray='8%2c 8' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
             background-color: rgba(0, 210, 255, 0.04);
@@ -125,7 +88,7 @@
 </head>
 <body class="antialiased selection:bg-cyan-500 selection:text-white">
 
-    <!-- 1. Top Navigation Bar -->
+    <!-- Top Navigation Bar -->
     <header class="border-b border-white/10 bg-[#070B19]/80 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <a href="#" class="flex items-center gap-1.5 text-xl font-bold tracking-tight">
@@ -133,52 +96,66 @@
                 <span class="text-white">Study Assistant</span>
             </a>
 
-            <!-- Desktop Menu -->
             <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
                 <a href="#" onclick="setActiveNav(this)" class="nav-link active">หน้าแรก</a>
                 <a href="#lessons" onclick="setActiveNav(this)" class="nav-link">บทเรียนของฉัน</a>
                 <a href="#history" onclick="setActiveNav(this)" class="nav-link">ประวัติการเรียน</a>
-                <button onclick="openApiModal()" class="nav-link flex items-center gap-1.5 text-amber-300 hover:text-amber-200">
+                <button onclick="toggleApiModal()" class="nav-link flex items-center gap-1.5 text-cyan-300 hover:text-cyan-200">
                     <i data-lucide="key" class="w-4 h-4"></i> ตั้งค่า API Key
                 </button>
             </nav>
 
-            <!-- Mobile Menu Button -->
-            <button onclick="openApiModal()" class="md:hidden text-amber-300 text-xs border border-amber-400/30 px-2.5 py-1.5 rounded-lg flex items-center gap-1">
-                <i data-lucide="key" class="w-3.5 h-3.5"></i> API Key
+            <button onclick="toggleApiModal()" class="md:hidden text-cyan-300 p-2 flex items-center gap-1 text-xs border border-cyan-500/30 rounded-lg">
+                <i data-lucide="key" class="w-4 h-4"></i> API Key
             </button>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-
-        <!-- API Key Status Banner -->
-        <div id="api-status-banner" class="rounded-xl bg-amber-500/10 border border-amber-400/30 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-3 text-xs sm:text-sm text-amber-200">
-                <i data-lucide="alert-circle" class="w-5 h-5 text-amber-400 shrink-0"></i>
-                <span>กรุณาตั้งค่า <strong>Google Gemini API Key</strong> ก่อนใช้งาน เพื่อให้ AI ตอบคำถามและวิเคราะห์เนื้อหาได้จริง</span>
+    <!-- API Key Setting Modal -->
+    <div id="api-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#0B132B] border border-white/15 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-[#00D2FF]"></i> เชื่อมต่อ Google Gemini API
+                </h3>
+                <button onclick="toggleApiModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <button onclick="openApiModal()" class="px-4 py-1.5 rounded-lg bg-amber-400 text-slate-950 font-semibold text-xs hover:bg-amber-300 transition shrink-0">
-                ใส่ API Key ตอนนี้
-            </button>
-        </div>
-
-        <!-- 2. Hero Greeting Section -->
-        <section class="space-y-2">
-            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">
-                ยินดีต้อนรับสู่ <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00D2FF] to-[#8B5CF6]">AI Study Assistant</span>
-            </h1>
-            <p class="text-slate-400 text-sm sm:text-base font-light">
-                ผู้ช่วยอัจฉริยะของคุณในการเรียนรู้ สรุปบทเรียน ถาม-ตอบข้อสงสัย และสร้างแบบทดสอบอัตโนมัติ
+            <p class="text-xs text-slate-300 leading-relaxed">
+                ใส่ <strong>Gemini API Key</strong> ของคุณเพื่อให้ AI ตอบคำถาม สรุปเนื้อหา และสร้างข้อสอบจากบทเรียนได้จริง (หากยังไม่ใส่ ระบบจะใช้โหมดวิเคราะห์ข้อความพื้นฐานอัตโนมัติ)
             </p>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Gemini API Key (ขึ้นต้นด้วย AIza...)</label>
+                <input type="password" id="gemini-api-key" placeholder="วาง API Key ที่นี่..." class="w-full rounded-xl bg-[#070B19] border border-slate-700 focus:border-[#00D2FF] px-3.5 py-2.5 text-sm text-white outline-none">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="saveApiKey()" class="btn-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white">บันทึก API Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+
+        <!-- Hero Greeting -->
+        <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div class="space-y-2">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">
+                    ยินดีต้อนรับสู่ <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00D2FF] to-[#8B5CF6]">AI Study Assistant</span>
+                </h1>
+                <p class="text-slate-400 text-sm sm:text-base font-light">
+                    ผู้ช่วยอัจฉริยะของคุณในการเรียนรู้ สรุปบทเรียน ถาม-ตอบข้อสงสัย และสร้างแบบทดสอบอัตโนมัติ
+                </p>
+            </div>
+            <div id="api-status-badge" class="self-start sm:self-end text-xs px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span> โหมดวิเคราะห์ในเครื่อง (ยังไม่ใส่ API Key)
+            </div>
         </section>
 
-        <!-- 3. 3 Main Feature Cards -->
+        <!-- 3 Main Feature Cards -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
             <!-- Card 1: สรุปบทเรียน -->
-            <div id="card-summary" onclick="selectMode('summary')" class="glass-card card-active-blue rounded-2xl p-6 cursor-pointer flex items-start gap-4 relative overflow-hidden group">
-                <div class="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-[#00D2FF] group-hover:scale-110 transition-transform">
+            <div id="card-summary" onclick="selectMode('summary')" class="glass-card card-active-blue rounded-2xl p-6 cursor-pointer flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-[#00D2FF]">
                     <i data-lucide="file-text" class="w-6 h-6"></i>
                 </div>
                 <div class="space-y-1">
@@ -193,8 +170,8 @@
             </div>
 
             <!-- Card 2: ถาม AI -->
-            <div id="card-qa" onclick="selectMode('qa')" class="glass-card rounded-2xl p-6 cursor-pointer flex items-start gap-4 relative overflow-hidden group">
-                <div class="w-12 h-12 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center shrink-0 text-teal-400 group-hover:scale-110 transition-transform">
+            <div id="card-qa" onclick="selectMode('qa')" class="glass-card rounded-2xl p-6 cursor-pointer flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center shrink-0 text-teal-400">
                     <i data-lucide="message-square-more" class="w-6 h-6"></i>
                 </div>
                 <div class="space-y-1">
@@ -203,14 +180,14 @@
                         <span id="badge-qa" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-400/20 text-teal-300 border border-teal-400/30">กำลังเลือก</span>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-300/80 leading-relaxed font-light">
-                        ถามคำถาม ได้คำตอบทันที อธิบายหัวข้อที่ซับซ้อนให้เข้าใจง่าย
+                        ถามคำถาม ได้คำตอบตรงตามบริบทและเนื้อหาที่ป้อนเข้ามา
                     </p>
                 </div>
             </div>
 
             <!-- Card 3: สร้างข้อสอบ -->
-            <div id="card-quiz" onclick="selectMode('quiz')" class="glass-card rounded-2xl p-6 cursor-pointer flex items-start gap-4 relative overflow-hidden group">
-                <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center shrink-0 text-purple-400 group-hover:scale-110 transition-transform">
+            <div id="card-quiz" onclick="selectMode('quiz')" class="glass-card rounded-2xl p-6 cursor-pointer flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center shrink-0 text-purple-400">
                     <i data-lucide="clipboard-check" class="w-6 h-6"></i>
                 </div>
                 <div class="space-y-1">
@@ -219,13 +196,13 @@
                         <span id="badge-quiz" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-purple-400/20 text-purple-300 border border-purple-400/30">กำลังเลือก</span>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-300/80 leading-relaxed font-light">
-                        สร้างแบบฝึกหัดและข้อสอบอัตโนมัติ พร้อมเฉลยละเอียด
+                        สร้างแบบฝึกหัดและข้อสอบอัตโนมัติ พร้อมเฉลยตรงตามเนื้อหา
                     </p>
                 </div>
             </div>
         </section>
 
-        <!-- 4. Content Input & Workspace Area -->
+        <!-- Content Input & Workspace Area -->
         <section class="glass-card rounded-2xl p-6 sm:p-8 space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
@@ -235,67 +212,62 @@
 
                 <!-- Switch Tab: Upload File vs Paste Text -->
                 <div class="inline-flex rounded-lg bg-[#070B19]/80 p-1 border border-white/10 self-start">
-                    <button id="tab-file" onclick="switchInputType('file')" class="px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition">
-                        <span class="flex items-center gap-1.5"><i data-lucide="upload" class="w-3.5 h-3.5"></i> อัปโหลดไฟล์</span>
-                    </button>
                     <button id="tab-text" onclick="switchInputType('text')" class="px-3.5 py-1.5 rounded-md text-xs font-medium bg-[#162447] text-[#00D2FF] shadow transition">
-                        <span class="flex items-center gap-1.5"><i data-lucide="align-left" class="w-3.5 h-3.5"></i> วางข้อความ / พิมพ์คำถาม</span>
+                        <span class="flex items-center gap-1.5"><i data-lucide="align-left" class="w-3.5 h-3.5"></i> พิมพ์ / วางข้อความ</span>
+                    </button>
+                    <button id="tab-file" onclick="switchInputType('file')" class="px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition">
+                        <span class="flex items-center gap-1.5"><i data-lucide="upload" class="w-3.5 h-3.5"></i> อัปโหลดไฟล์ PDF/TXT</span>
                     </button>
                 </div>
             </div>
 
-            <!-- 70/30 Split Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                
-                <!-- Left Column -->
-                <div class="lg:col-span-8 flex flex-col">
-                    <!-- Mode A: File Dropzone -->
+                <!-- Left Column (8 cols) -->
+                <div class="lg:col-span-8 flex flex-col space-y-3">
+                    <!-- Mode A: Textarea Paste (Default so user can type immediately) -->
+                    <div id="input-text-area" class="flex-1 flex flex-col">
+                        <textarea id="lesson-textarea" rows="7" placeholder="วางเนื้อหาบทเรียนที่ต้องการสรุป / สร้างข้อสอบ หรือพิมพ์คำถามของคุณที่นี่..." class="w-full flex-1 rounded-xl bg-[#070B19]/90 border border-slate-700/80 focus:border-[#00D2FF] focus:ring-1 focus:ring-[#00D2FF] p-4 text-sm text-white placeholder-slate-500 outline-none resize-none transition"></textarea>
+                    </div>
+
+                    <!-- Mode B: File Dropzone -->
                     <div id="input-file-area" onclick="document.getElementById('file-upload').click()" class="hidden dropzone-border rounded-xl p-8 flex-1 min-h-[210px] flex flex-col items-center justify-center text-center cursor-pointer group">
                         <input type="file" id="file-upload" class="hidden" accept=".pdf,.txt" onchange="handleFileSelect(event)">
-                        
-                        <div class="w-14 h-14 rounded-full bg-[#162447]/80 border border-white/10 flex items-center justify-center mb-3 text-slate-300 group-hover:text-[#00D2FF] group-hover:scale-110 transition-all">
+                        <div class="w-14 h-14 rounded-full bg-[#162447]/80 border border-white/10 flex items-center justify-center mb-3 text-slate-300 group-hover:text-[#00D2FF] transition-all">
                             <i data-lucide="upload" class="w-6 h-6"></i>
                         </div>
-                        
                         <p id="file-name-display" class="text-sm sm:text-base font-medium text-white mb-1">
-                            คลิกเพื่อเลือกไฟล์ PDF หรือ TXT
+                            คลิกเพื่อเลือกไฟล์ PDF หรือไฟล์ข้อความ (.txt)
                         </p>
                         <p class="text-xs text-slate-400">
-                            ระบบจะดึงข้อความจากไฟล์ให้อัตโนมัติเพื่อส่งให้ AI วิเคราะห์
+                            ระบบจะดึงข้อความจากไฟล์ของคุณมาวิเคราะห์โดยตรง
                         </p>
                     </div>
 
-                    <!-- Mode B: Textarea Paste (Default active so user can type immediately) -->
-                    <div id="input-text-area" class="flex-1 flex flex-col">
-                        <textarea id="lesson-textarea" rows="7" placeholder="พิมพ์คำถามของคุณ (เช่น 'AI คืออะไร') หรือวางเนื้อหาบทเรียนที่ต้องการให้สรุป / สร้างข้อสอบที่นี่..." class="w-full flex-1 rounded-xl bg-[#070B19]/90 border border-slate-700/80 focus:border-[#00D2FF] focus:ring-1 focus:ring-[#00D2FF] p-4 text-sm text-white placeholder-slate-500 outline-none resize-none transition"></textarea>
+                    <!-- Optional Question Input when in QA Mode -->
+                    <div id="qa-question-box" class="hidden">
+                        <label class="block text-xs text-teal-300 mb-1.5 font-medium">คำถามเฉพาะเจาะจงเกี่ยวกับเนื้อหาด้านบน (ไม่บังคับ หากพิมพ์คำถามในช่องด้านบนแล้ว):</label>
+                        <input type="text" id="specific-question" placeholder="เช่น จากเนื้อหาด้านบน จงอธิบายความแตกต่างระหว่าง..." class="w-full rounded-xl bg-[#070B19]/90 border border-teal-500/40 focus:border-teal-400 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none">
                     </div>
                 </div>
 
-                <!-- Right Column -->
+                <!-- Right Column (4 cols) -->
                 <div class="lg:col-span-4 rounded-xl bg-[#070B19]/60 border border-white/5 p-6 flex flex-col items-center justify-center text-center space-y-5">
                     <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-[#00D2FF]/20 to-[#8B5CF6]/20 border border-white/10 flex items-center justify-center text-[#00D2FF]">
                         <i data-lucide="brain-circuit" class="w-6 h-6"></i>
                     </div>
-                    
                     <div class="space-y-1.5">
-                        <p id="action-title" class="text-sm sm:text-base font-medium text-white">
-                            ให้ AI วิเคราะห์เนื้อหา
-                        </p>
-                        <p id="action-desc" class="text-xs text-slate-400 leading-relaxed">
-                            เพื่อสรุปและจัดทำประเด็นสำคัญให้อ่านเข้าใจง่ายในไม่กี่วินาที
-                        </p>
+                        <p id="action-title" class="text-sm sm:text-base font-medium text-white">ให้ AI วิเคราะห์เนื้อหา</p>
+                        <p id="action-desc" class="text-xs text-slate-400 leading-relaxed">ประมวลผลตรงตามเนื้อหาและคำถามที่คุณป้อนเข้าไป</p>
                     </div>
-
-                    <button id="analyze-btn" onclick="callGeminiAPI()" class="btn-gradient w-full py-3 px-6 rounded-xl font-semibold text-sm text-white shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                    <button id="analyze-btn" onclick="processContent()" class="btn-gradient w-full py-3 px-6 rounded-xl font-semibold text-sm text-white shadow-lg flex items-center justify-center gap-2 cursor-pointer">
                         <i data-lucide="sparkles" class="w-4 h-4"></i>
-                        <span id="btn-text">วิเคราะห์</span>
+                        <span id="btn-text">วิเคราะห์และสรุป</span>
                     </button>
                 </div>
-
             </div>
         </section>
 
-        <!-- 5. Real AI Output Section -->
+        <!-- Output Section -->
         <section id="result-section" class="hidden glass-card rounded-2xl p-6 sm:p-8 border border-[#00D2FF]/30 space-y-6">
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
                 <div class="flex items-center gap-2.5">
@@ -303,7 +275,7 @@
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00D2FF] opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-[#00D2FF]"></span>
                     </span>
-                    <h3 id="result-header" class="text-lg font-semibold text-white">ผลลัพธ์จาก AI</h3>
+                    <h3 id="result-header" class="text-lg font-semibold text-white">ผลลัพธ์การวิเคราะห์</h3>
                 </div>
                 <button onclick="copyResult()" class="text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 flex items-center gap-1.5 transition">
                     <i data-lucide="copy" class="w-3.5 h-3.5"></i> คัดลอกผลลัพธ์
@@ -313,94 +285,61 @@
             <!-- Loading State -->
             <div id="loading-state" class="hidden py-10 flex flex-col items-center justify-center text-center space-y-3">
                 <div class="w-10 h-10 border-4 border-[#00D2FF]/30 border-t-[#00D2FF] rounded-full animate-spin"></div>
-                <p class="text-sm text-slate-300">กำลังประมวลผลคำตอบจาก Google Gemini API...</p>
+                <p id="loading-text" class="text-sm text-slate-300">กำลังวิเคราะห์เนื้อหาและคำถามของคุณ...</p>
             </div>
 
             <!-- Dynamic Output Content -->
-            <div id="output-content" class="text-sm sm:text-base text-slate-200 leading-relaxed space-y-4"></div>
+            <div id="output-content" class="text-sm text-slate-200 leading-relaxed space-y-4"></div>
         </section>
 
     </main>
 
-    <!-- Modal ตั้งค่า Gemini API Key -->
-    <div id="api-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-[#0B132B] border border-white/15 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                    <i data-lucide="key" class="w-5 h-5 text-[#00D2FF]"></i> ตั้งค่า Google Gemini API Key
-                </h3>
-                <button onclick="closeApiModal()" class="text-slate-400 hover:text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            
-            <p class="text-xs text-slate-300 leading-relaxed">
-                นำ API Key ที่ได้จาก <strong>Google AI Studio</strong> มาวางด้านล่าง ระบบจะบันทึกไว้ในเบราว์เซอร์ของคุณเท่านั้น (ปลอดภัยเมื่ออัปโหลดขึ้น GitHub)
-            </p>
-
-            <div class="space-y-2">
-                <label class="text-xs font-medium text-slate-400">Gemini API Key</label>
-                <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full rounded-xl bg-[#070B19] border border-slate-700 focus:border-[#00D2FF] px-4 py-2.5 text-sm text-white outline-none">
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeApiModal()" class="px-4 py-2 rounded-xl text-xs text-slate-300 hover:bg-white/5">ยกเลิก</button>
-                <button onclick="saveApiKey()" class="btn-gradient px-5 py-2 rounded-xl text-xs font-semibold text-white">บันทึก API Key</button>
-            </div>
-        </div>
-    </div>
-
-    <footer class="border-t border-white/5 mt-16 py-6 text-center text-xs text-slate-500">
-        <p>โครงงานระดับประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) — ระบบผู้ช่วยการเรียนรู้และสร้างแบบทดสอบอัจฉริยะ (AI Study Assistant)</p>
-    </footer>
-
     <script>
         lucide.createIcons();
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         let currentMode = 'summary'; // 'summary' | 'qa' | 'quiz'
+        let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
 
-        // Check API Key on Load
-        window.addEventListener('DOMContentLoaded', () => {
-            checkApiKeyStatus();
-        });
-
-        function checkApiKeyStatus() {
-            const key = localStorage.getItem('gemini_api_key');
-            const banner = document.getElementById('api-status-banner');
-            if (key && key.trim() !== '') {
-                banner.classList.add('hidden');
-            } else {
-                banner.classList.remove('hidden');
-            }
+        if (geminiApiKey) {
+            document.getElementById('gemini-api-key').value = geminiApiKey;
+            updateApiBadge(true);
         }
 
-        function openApiModal() {
-            const savedKey = localStorage.getItem('gemini_api_key') || '';
-            document.getElementById('api-key-input').value = savedKey;
-            document.getElementById('api-modal').classList.remove('hidden');
-        }
-
-        function closeApiModal() {
-            document.getElementById('api-modal').classList.add('hidden');
+        function toggleApiModal() {
+            document.getElementById('api-modal').classList.toggle('hidden');
         }
 
         function saveApiKey() {
-            const key = document.getElementById('api-key-input').value.trim();
-            if (!key) {
-                alert('กรุณากรอก API Key ก่อนบันทึกครับ');
-                return;
+            const key = document.getElementById('gemini-api-key').value.trim();
+            geminiApiKey = key;
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                updateApiBadge(true);
+            } else {
+                localStorage.removeItem('gemini_api_key');
+                updateApiBadge(false);
             }
-            localStorage.setItem('gemini_api_key', key);
-            checkApiKeyStatus();
-            closeApiModal();
-            alert('บันทึก API Key เรียบร้อยแล้ว! สามารถเริ่มถามคำถามหรือวิเคราะห์บทเรียนได้ทันที');
+            toggleApiModal();
         }
 
-        // Select Feature Mode
+        function updateApiBadge(connected) {
+            const badge = document.getElementById('api-status-badge');
+            if (connected) {
+                badge.className = 'self-start sm:self-end text-xs px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> เชื่อมต่อ Gemini AI API พร้อมใช้งานจริง';
+            } else {
+                badge.className = 'self-start sm:self-end text-xs px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1.5';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span> โหมดวิเคราะห์ในเครื่อง (ยังไม่ใส่ API Key)';
+            }
+        }
+
+        function setActiveNav(el) {
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            el.classList.add('active');
+        }
+
         function selectMode(mode) {
             currentMode = mode;
-
             const cards = {
                 summary: document.getElementById('card-summary'),
                 qa: document.getElementById('card-qa'),
@@ -420,21 +359,266 @@
             const actionTitle = document.getElementById('action-title');
             const actionDesc = document.getElementById('action-desc');
             const btnText = document.getElementById('btn-text');
-            const heading = document.getElementById('workspace-heading');
+            const qaBox = document.getElementById('qa-question-box');
+            const textarea = document.getElementById('lesson-textarea');
 
             if (mode === 'summary') {
                 cards.summary.classList.add('card-active-blue');
                 badges.summary.classList.remove('hidden');
-                heading.textContent = 'วางเนื้อหาบทเรียนของคุณ';
                 actionTitle.textContent = 'ให้ AI วิเคราะห์เนื้อหา';
-                actionDesc.textContent = 'เพื่อสรุปและจัดทำประเด็นสำคัญให้อ่านเข้าใจง่ายในไม่กี่วินาที';
+                actionDesc.textContent = 'สรุปประเด็นสำคัญจากเนื้อหาที่คุณป้อนเข้าไป';
                 btnText.textContent = 'วิเคราะห์และสรุป';
+                qaBox.classList.add('hidden');
+                textarea.placeholder = 'วางเนื้อหาบทเรียนที่ต้องการให้สรุปประเด็นสำคัญที่นี่...';
             } else if (mode === 'qa') {
                 cards.qa.classList.add('card-active-teal');
                 badges.qa.classList.remove('hidden');
-                heading.textContent = 'พิมพ์คำถามหรือหัวข้อที่สงสัย';
                 actionTitle.textContent = 'ถามข้อสงสัยกับ AI Tutor';
-                actionDesc.textContent = 'AI จะอธิบายเนื้อหาที่ซับซ้อนพร้อมยกตัวอย่างประกอบให้เข้าใจง่าย';
+                actionDesc.textContent = 'AI จะตอบคำถามโดยอ้างอิงจากเนื้อหาและคำถามของคุณโดยตรง';
                 btnText.textContent = 'ส่งคำถามให้ AI';
+                qaBox.classList.remove('hidden');
+                textarea.placeholder = 'พิมพ์คำถามของคุณที่นี่ หรือวางเนื้อหาบทเรียนแล้วพิมพ์คำถามในช่องด้านล่าง...';
                 switchInputType('text');
-            } else if (mode === 'quiz
+            } else if (mode === 'quiz') {
+                cards.quiz.classList.add('card-active-purple');
+                badges.quiz.classList.remove('hidden');
+                actionTitle.textContent = 'สร้างแบบทดสอบอัตโนมัติ';
+                actionDesc.textContent = 'ออกข้อสอบปรนัยพร้อมเฉลยจากเนื้อหาบทเรียนของคุณ';
+                btnText.textContent = 'สร้างข้อสอบ';
+                qaBox.classList.add('hidden');
+                textarea.placeholder = 'วางเนื้อหาบทเรียนที่ต้องการให้สร้างข้อสอบพร้อมเฉลยที่นี่...';
+            }
+        }
+
+        function switchInputType(type) {
+            const tabFile = document.getElementById('tab-file');
+            const tabText = document.getElementById('tab-text');
+            const areaFile = document.getElementById('input-file-area');
+            const areaText = document.getElementById('input-text-area');
+
+            if (type === 'file') {
+                tabFile.className = 'px-3.5 py-1.5 rounded-md text-xs font-medium bg-[#162447] text-[#00D2FF] shadow transition';
+                tabText.className = 'px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition';
+                areaFile.classList.remove('hidden');
+                areaText.classList.add('hidden');
+            } else {
+                tabText.className = 'px-3.5 py-1.5 rounded-md text-xs font-medium bg-[#162447] text-[#00D2FF] shadow transition';
+                tabFile.className = 'px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition';
+                areaText.classList.remove('hidden');
+                areaFile.classList.add('hidden');
+            }
+        }
+
+        // Extract text from real PDF or TXT file
+        async function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const display = document.getElementById('file-name-display');
+            display.innerHTML = `<span class="text-[#00D2FF]">กำลังอ่านไฟล์:</span> ${file.name}...`;
+
+            try {
+                let extractedText = '';
+                if (file.type === 'application/pdf') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        extractedText += textContent.items.map(item => item.str).join(' ') + '\n';
+                    }
+                } else {
+                    extractedText = await file.text();
+                }
+
+                document.getElementById('lesson-textarea').value = extractedText.trim();
+                display.innerHTML = `<span class="text-emerald-400">อ่านไฟล์สำเร็จ:</span> ${file.name} (${extractedText.length} ตัวอักษร)`;
+                switchInputType('text');
+            } catch (err) {
+                display.innerHTML = `<span class="text-rose-400">เกิดข้อผิดพลาดในการอ่านไฟล์ กรุณาลองวางข้อความแทน</span>`;
+            }
+        }
+
+        // Main Processing Function (Uses Real Gemini API if Key provided, otherwise Dynamic Local Analysis)
+        async function processContent() {
+            const rawText = document.getElementById('lesson-textarea').value.trim();
+            const specificQuestion = document.getElementById('specific-question').value.trim();
+
+            if (!rawText && !specificQuestion) {
+                alert('กรุณาพิมพ์คำถาม หรือวางเนื้อหาบทเรียนก่อนกดวิเคราะห์ครับ');
+                return;
+            }
+
+            const resultSection = document.getElementById('result-section');
+            const loadingState = document.getElementById('loading-state');
+            const outputContent = document.getElementById('output-content');
+            const resultHeader = document.getElementById('result-header');
+
+            resultSection.classList.remove('hidden');
+            loadingState.classList.remove('hidden');
+            outputContent.innerHTML = '';
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // 1. If user provided a real Gemini API Key -> Call Gemini API directly
+            if (geminiApiKey) {
+                try {
+                    const responseHTML = await callRealGeminiAPI(rawText, specificQuestion);
+                    loadingState.classList.add('hidden');
+                    outputContent.innerHTML = responseHTML;
+                    return;
+                } catch (error) {
+                    loadingState.classList.add('hidden');
+                    outputContent.innerHTML = `
+                        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200">
+                            <strong>เกิดข้อผิดพลาดในการเชื่อมต่อ Gemini API:</strong> ${error.message}<br>
+                            <span class="text-xs text-slate-400">กรุณาตรวจสอบ API Key ในเมนู "ตั้งค่า API Key" ด้านบน</span>
+                        </div>`;
+                    return;
+                }
+            }
+
+            // 2. Fallback: Dynamic Text Processing based strictly on user's actual input (No hardcoded IoT text!)
+            setTimeout(() => {
+                loadingState.classList.add('hidden');
+                outputContent.innerHTML = generateDynamicLocalResponse(rawText, specificQuestion);
+            }, 600);
+        }
+
+        // Call Google Gemini API
+        async function callRealGeminiAPI(content, question) {
+            let prompt = '';
+            const headerEl = document.getElementById('result-header');
+
+            if (currentMode === 'summary') {
+                headerEl.textContent = 'สรุปประเด็นสำคัญจากเนื้อหาของคุณ (Gemini AI)';
+                prompt = `จงสรุปใจความสำคัญจากเนื้อหาต่อไปนี้ให้อ่านเข้าใจง่าย เป็นข้อๆ (Bullet points) ภาษาไทยที่กระชับและชัดเจน ห้ามแต่งข้อมูลเพิ่มนอกเหนือจากเนื้อหา:\n\nเนื้อหา:\n${content}`;
+            } else if (currentMode === 'qa') {
+                headerEl.textContent = 'คำตอบจาก AI Tutor (ตรงตามคำถามและเนื้อหา)';
+                if (question && content) {
+                    prompt = `อ้างอิงจากเนื้อหาที่ให้มานี้เท่านั้น จงตอบคำถามให้ตรงประเด็นและชัดเจน:\n\nเนื้อหา:\n${content}\n\nคำถาม:\n${question}`;
+                } else {
+                    prompt = `จงตอบคำถามต่อไปนี้อย่างละเอียด เข้าใจง่าย พร้อมยกตัวอย่างประกอบสำหรับนักศึกษาระดับ ปวส.:\n\nคำถาม:\n${question || content}`;
+                }
+            } else if (currentMode === 'quiz') {
+                headerEl.textContent = 'แบบทดสอบและเฉลยจากเนื้อหาของคุณ (Gemini AI)';
+                prompt = `จากเนื้อหาต่อไปนี้ จงสร้างข้อสอบปรนัย 4 ตัวเลือก (ก, ข, ค, ง) จำนวน 3 ข้อ ที่ถามตรงกับเนื้อหาที่ให้มา พร้อมระบุข้อที่ถูกต้องและคำอธิบายเฉลยสั้นๆ:\n\nเนื้อหา:\n${content}`;
+            }
+
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error?.message || 'ไม่สามารถเชื่อมต่อ API ได้');
+            }
+
+            const data = await res.json();
+            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับข้อความตอบกลับ';
+
+            // Format markdown-like bold and line breaks cleanly
+            const formatted = aiText
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-300">$1</strong>')
+                .replace(/\n/g, '<br>');
+
+            return `<div class="p-5 rounded-xl bg-[#070B19]/80 border border-white/10 leading-relaxed text-slate-200">${formatted}</div>`;
+        }
+
+        // Dynamic Local Analysis (Strictly uses user's own sentences/questions)
+        function generateDynamicLocalResponse(rawText, specificQuestion) {
+            const headerEl = document.getElementById('result-header');
+            // Split user input into clean sentences/lines
+            const sentences = rawText
+                .split(/[\n\r]+|(?<=[.!?])\s+/)
+                .map(s => s.trim())
+                .filter(s => s.length > 5);
+
+            if (currentMode === 'summary') {
+                headerEl.textContent = 'สรุปประเด็นสำคัญจากเนื้อหาที่คุณป้อน';
+                const points = sentences.length > 0 ? sentences.slice(0, 6) : [rawText];
+                const listHTML = points.map(p => `<li>${escapeHTML(p)}</li>`).join('');
+                return `
+                    <div class="p-5 rounded-xl bg-[#070B19]/80 border border-blue-500/20 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-semibold text-[#00D2FF]">สรุปใจความสำคัญ (${points.length} ประเด็นหลักจากข้อความของคุณ):</h4>
+                        </div>
+                        <ul class="list-disc list-inside space-y-2 text-slate-200">${listHTML}</ul>
+                        <p class="text-xs text-slate-400 pt-2 border-t border-white/5">* เคล็ดลับ: หากต้องการให้ AI วิเคราะห์เชิงลึกและเรียบเรียงภาษาใหม่ทั้งหมด สามารถใส่ Gemini API Key ฟรีได้ที่ปุ่มมุมขวาบน</p>
+                    </div>`;
+            }
+
+            if (currentMode === 'qa') {
+                headerEl.textContent = 'คำตอบตรงตามคำถามและเนื้อหาของคุณ';
+                const userQuery = specificQuestion || rawText;
+                
+                // Search for matching keywords from the question inside the provided content
+                let matchedContext = '';
+                if (specificQuestion && sentences.length > 0) {
+                    const keywords = specificQuestion.split(/\s+/).filter(w => w.length > 2);
+                    const relevant = sentences.filter(s => keywords.some(k => s.includes(k)));
+                    matchedContext = relevant.length > 0 ? relevant.join(' ') : sentences[0];
+                } else if (sentences.length > 0) {
+                    matchedContext = sentences.join(' ');
+                }
+
+                return `
+                    <div class="p-5 rounded-xl bg-[#070B19]/80 border border-teal-500/20 space-y-3">
+                        <div class="bg-teal-950/40 border border-teal-500/20 p-3 rounded-lg">
+                            <span class="text-xs text-teal-300 font-semibold">คำถามของคุณ:</span>
+                            <p class="text-white font-medium mt-0.5">"${escapeHTML(userQuery)}"</p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <span class="text-xs text-cyan-300 font-semibold">คำตอบจากเนื้อหาที่ตรวจพบ:</span>
+                            <p class="text-slate-200 leading-relaxed">
+                                ${specificQuestion && rawText 
+                                    ? `จากเนื้อหาบทเรียนที่คุณป้อนเข้ามา ข้อมูลที่ตรงกับคำถามของคุณคือ: <strong>"${escapeHTML(matchedContext)}"</strong>` 
+                                    : `ระบบได้รับคำถามของคุณเรียบร้อยแล้ว กรุณาใส่ <strong>Gemini API Key</strong> ที่เมนูตั้งค่าด้านบน เพื่อให้ AI ประมวลผลคำตอบเชิงลึกสำหรับคำถาม "${escapeHTML(userQuery)}" ได้ทันทีครับ`}
+                            </p>
+                        </div>
+                    </div>`;
+            }
+
+            if (currentMode === 'quiz') {
+                headerEl.textContent = 'แบบทดสอบที่สร้างจากเนื้อหาของคุณ';
+                // Generate dynamic questions directly from user's sentences
+                const quizItems = sentences.length > 0 ? sentences.slice(0, 3) : [rawText];
+                const quizHTML = quizItems.map((sentence, idx) => {
+                    const words = sentence.split(/\s+/).filter(w => w.length > 2);
+                    const targetWord = words.length > 2 ? words[Math.floor(words.length / 2)] : (words[0] || 'คำตอบ');
+                    const blankedSentence = sentence.replace(targetWord, ' [ .......... ] ');
+
+                    return `
+                        <div class="p-4 rounded-xl bg-[#070B19]/90 border border-purple-500/20 space-y-3">
+                            <p class="font-medium text-white">ข้อที่ ${idx + 1}: จงเติมคำหรือข้อความที่หายไปให้สมบูรณ์ตามเนื้อหาบทเรียน<br>
+                            <span class="text-cyan-200 font-normal">"${escapeHTML(blankedSentence)}"</span></p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <div class="p-2.5 rounded-lg bg-emerald-500/20 border border-emerald-400/50 text-emerald-200 font-medium">ก. ${escapeHTML(targetWord)} (คำตอบที่ถูกต้อง ✓)</div>
+                                <div class="p-2.5 rounded-lg bg-white/5 border border-white/10 text-slate-400">ข. ไม่มีข้อใดกล่าวถึงในเนื้อหา</div>
+                            </div>
+                            <p class="text-xs text-slate-400 bg-white/5 p-2.5 rounded-lg">
+                                <strong class="text-purple-300">เฉลยอ้างอิงจากเนื้อหาจริง:</strong> "${escapeHTML(sentence)}"
+                            </p>
+                        </div>`;
+                }).join('');
+
+                return `<div class="space-y-4">${quizHTML}</div>`;
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function copyResult() {
+            const text = document.getElementById('output-content').innerText;
+            navigator.clipboard.writeText(text);
+            alert('คัดลอกผลลัพธ์ไปยังคลิปบอร์ดแล้ว!');
+        }
+    </script>
+</body>
+</html>
