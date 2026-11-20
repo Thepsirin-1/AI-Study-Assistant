@@ -121,14 +121,14 @@
                 <button onclick="toggleApiModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <p class="text-xs text-slate-300 leading-relaxed">
-                ใส่ <strong>API Key</strong> ของคุณ (รองรับรูปแบบ <code>AQ.Ab...</code> หรือ <code>AIza...</code>) เพื่อให้ระบบสรุปเนื้อหา ตอบคำถาม และสร้างข้อสอบอัตโนมัติ
+                ใส่ <strong>Gemini API Key</strong> ของคุณ (เช่น <code>AIza...</code> จาก Google AI Studio) เพื่อให้ระบบสรุปเนื้อหา ตอบคำถาม และสร้างข้อสอบอัตโนมัติ
             </p>
             <div>
                 <label class="block text-xs text-slate-400 mb-1">API Key</label>
                 <input type="password" id="gemini-api-key" placeholder="วาง API Key ที่นี่..." class="w-full rounded-xl bg-[#070B19] border border-slate-700 focus:border-[#00D2FF] px-3.5 py-2.5 text-sm text-white outline-none">
             </div>
             <div class="flex justify-between items-center pt-2">
-                <button onclick="resetDefaultKey()" class="text-xs text-slate-400 hover:text-cyan-300 underline">ใช้คีย์เริ่มต้น</button>
+                <button onclick="resetDefaultKey()" class="text-xs text-slate-400 hover:text-cyan-300 underline">ล้างคีย์</button>
                 <button onclick="saveApiKey()" class="btn-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white">บันทึก API Key</button>
             </div>
         </div>
@@ -225,7 +225,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                 <!-- Left Column (8 cols) -->
                 <div class="lg:col-span-8 flex flex-col space-y-3">
-                    <!-- Mode A: Textarea Paste (Default so user can type immediately) -->
+                    <!-- Mode A: Textarea Paste -->
                     <div id="input-text-area" class="flex-1 flex flex-col">
                         <textarea id="lesson-textarea" rows="7" placeholder="วางเนื้อหาบทเรียนที่ต้องการสรุป / สร้างข้อสอบ หรือพิมพ์คำถามของคุณที่นี่..." class="w-full flex-1 rounded-xl bg-[#070B19]/90 border border-slate-700/80 focus:border-[#00D2FF] focus:ring-1 focus:ring-[#00D2FF] p-4 text-sm text-white placeholder-slate-500 outline-none resize-none transition"></textarea>
                     </div>
@@ -298,8 +298,8 @@
     <script>
         lucide.createIcons();
 
-        // กำหนด API Key เริ่มต้นของคุณ
-        const DEFAULT_API_KEY = 'AQ.Ab8RN6LRAbE603pFro3AM5aax0Drq_fNVtHS7pUQML-MOo03hQ';
+        // แนะนำให้ใส่ API Key ผ่านเมนู "ตั้งค่า API Key" บนหน้าเว็บแทนการฝังลงในโค้ด
+        const DEFAULT_API_KEY = '';
 
         let currentMode = 'summary'; // 'summary' | 'qa' | 'quiz'
         let geminiApiKey = localStorage.getItem('gemini_api_key') || DEFAULT_API_KEY;
@@ -328,10 +328,10 @@
         }
 
         function resetDefaultKey() {
-            geminiApiKey = DEFAULT_API_KEY;
-            localStorage.setItem('gemini_api_key', DEFAULT_API_KEY);
-            document.getElementById('gemini-api-key').value = DEFAULT_API_KEY;
-            updateApiBadge(true);
+            geminiApiKey = '';
+            localStorage.removeItem('gemini_api_key');
+            document.getElementById('gemini-api-key').value = '';
+            updateApiBadge(false);
             toggleApiModal();
         }
 
@@ -452,7 +452,7 @@
             }
         }
 
-        // Main Processing Function (Uses Real API if Key provided, otherwise Dynamic Local Analysis)
+        // Main Processing Function
         async function processContent() {
             const rawText = document.getElementById('lesson-textarea').value.trim();
             const specificQuestion = document.getElementById('specific-question').value.trim();
@@ -497,14 +497,14 @@
             }, 600);
         }
 
-        // Call Google Gemini / Vertex Express API
+        // Call Google Gemini API (อัปเดตโมเดลเป็น gemini-3.8-flash แล้ว)
         async function callRealGeminiAPI(content, question) {
             let prompt = '';
             const headerEl = document.getElementById('result-header');
 
             if (currentMode === 'summary') {
                 headerEl.textContent = 'สรุปประเด็นสำคัญจากเนื้อหาของคุณ (AI)';
-                prompt = `จงสรุปใจความสำคัญจากเนื้อหาต่อไปนี้ให้อ่านเข้าใจง่าย เป็นข้อๆ (Bullet points) ภาษาไทยที่กระชับและชัดเจน ห้ามแต่งข้อมูลเพิ่มนอกเหนือจากเนื้อหา:\n\nเนื้อหา:\n${content}`;
+                prompt = `จงสรุปใจความสำคัญจากเนื้อหาต่อไปนี้ให้อ่านเข้าใจง่าย เป็นข้อๆ (Bullet points) ภาษาไทยที่กระชับและชัดเจน:\n\nเนื้อหา:\n${content}`;
             } else if (currentMode === 'qa') {
                 headerEl.textContent = 'คำตอบจาก AI Tutor (ตรงตามคำถามและเนื้อหา)';
                 if (question && content) {
@@ -517,13 +517,12 @@
                 prompt = `จากเนื้อหาต่อไปนี้ จงสร้างข้อสอบปรนัย 4 ตัวเลือก (ก, ข, ค, ง) จำนวน 3 ข้อ ที่ถามตรงกับเนื้อหาที่ให้มา พร้อมระบุข้อที่ถูกต้องและคำอธิบายเฉลยสั้นๆ:\n\nเนื้อหา:\n${content}`;
             }
 
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
 
             const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': geminiApiKey
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }]
@@ -559,70 +558,30 @@
 
             if (currentMode === 'summary') {
                 headerEl.textContent = 'สรุปประเด็นสำคัญจากเนื้อหาที่คุณป้อน';
-                const points = sentences.length > 0 ? sentences.slice(0, 6) : [rawText];
-                const listHTML = points.map(p => `<li>${escapeHTML(p)}</li>`).join('');
+                const points = sentences.length > 0 ? sentences.slice(0, 5) : [rawText];
                 return `
-                    <div class="p-5 rounded-xl bg-[#070B19]/80 border border-blue-500/20 space-y-3">
-                        <h4 class="font-semibold text-[#00D2FF]">สรุปใจความสำคัญ (${points.length} ประเด็นหลักจากข้อความของคุณ):</h4>
+                    <div class="p-5 rounded-xl bg-[#070B19]/80 border border-white/10 space-y-3">
+                        <p class="text-cyan-300 font-medium">สรุปใจความสำคัญ (${points.length} ประเด็นหลักจากข้อความของคุณ):</p>
                         <ul class="list-disc list-inside space-y-2 text-slate-300">
-                            ${listHTML}
+                            ${points.map(p => `<li>${escapeHTML(p)}</li>`).join('')}
                         </ul>
                     </div>`;
-            }
-
-            if (currentMode === 'qa') {
-                headerEl.textContent = 'คำตอบจากการค้นหาในเนื้อหาของคุณ';
+            } else if (currentMode === 'qa') {
+                headerEl.textContent = 'ผลการวิเคราะห์คำถามเบื้องต้น';
                 const query = specificQuestion || rawText;
-                const keywords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-
-                let matched = sentences.filter(s =>
-                    keywords.some(kw => s.toLowerCase().includes(kw))
-                );
-
-                if (matched.length === 0 && sentences.length > 0) {
-                    matched = sentences.slice(0, 3);
-                }
-
-                const answerHTML = matched.length > 0
-                    ? matched.map(m => `<p class="p-3 rounded-lg bg-white/5 border border-white/5 text-slate-200">${escapeHTML(m)}</p>`).join('')
-                    : `<p class="text-slate-300">ได้รับคำถาม: <strong>"${escapeHTML(query)}"</strong></p>`;
-
                 return `
-                    <div class="p-5 rounded-xl bg-[#070B19]/80 border border-teal-500/20 space-y-3">
-                        <div class="text-xs text-teal-300 font-medium">คำถามของคุณ: "${escapeHTML(query)}"</div>
-                        <div class="space-y-2">
-                            <h4 class="font-semibold text-white">ส่วนที่เกี่ยวข้องจากเนื้อหา:</h4>
-                            ${answerHTML}
-                        </div>
+                    <div class="p-5 rounded-xl bg-[#070B19]/80 border border-white/10 space-y-3">
+                        <p class="text-teal-300 font-medium">คำถามของคุณ: "${escapeHTML(query)}"</p>
+                        <p class="text-slate-300">กรุณาใส่ Gemini API Key ที่เมนู <strong>"ตั้งค่า API Key"</strong> มุมขวาบน เพื่อให้ AI ประมวลผลคำตอบเชิงลึกสำหรับคำถามนี้ครับ</p>
                     </div>`;
-            }
-
-            if (currentMode === 'quiz') {
-                headerEl.textContent = 'แบบฝึกหัดทบทวนความจำจากเนื้อหาของคุณ';
-                const sampleSentences = sentences.length > 0 ? sentences.slice(0, 3) : [rawText];
-
-                const quizHTML = sampleSentences.map((sentence, idx) => {
-                    const words = sentence.split(/\s+/).filter(w => w.length > 3);
-                    const targetWord = words[Math.floor(words.length / 2)] || words[0] || 'คำสำคัญ';
-                    const blankedSentence = sentence.replace(targetWord, ' ________ ');
-
-                    return `
-                        <div class="p-4 rounded-xl bg-white/5 border border-purple-500/20 space-y-2">
-                            <p class="font-medium text-purple-300">ข้อที่ ${idx + 1}. จงเติมคำในช่องว่างให้ถูกต้องตามเนื้อหาบทเรียน:</p>
-                            <p class="text-slate-200">"${escapeHTML(blankedSentence)}"</p>
-                            <details class="pt-1">
-                                <summary class="text-xs text-cyan-400 cursor-pointer hover:underline">คลิกเพื่อดูเฉลย</summary>
-                                <p class="mt-1.5 text-xs text-emerald-300 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
-                                    <strong>เฉลย:</strong> ${escapeHTML(targetWord)}
-                                </p>
-                            </details>
-                        </div>`;
-                }).join('');
-
+            } else {
+                headerEl.textContent = 'ตัวอย่างแบบทดสอบเบื้องต้น';
+                const sample = sentences[0] || rawText;
                 return `
-                    <div class="p-5 rounded-xl bg-[#070B19]/80 border border-purple-500/20 space-y-4">
-                        <h4 class="font-semibold text-purple-300">แบบทดสอบจากเนื้อหา (${sampleSentences.length} ข้อ):</h4>
-                        ${quizHTML}
+                    <div class="p-5 rounded-xl bg-[#070B19]/80 border border-white/10 space-y-3">
+                        <p class="text-purple-300 font-medium">ข้อที่ 1: เนื้อหาหลักที่กล่าวถึงในบทเรียนนี้คือข้อใด?</p>
+                        <p class="text-slate-300 text-xs">อ้างอิง: "${escapeHTML(sample.substring(0, 120))}..."</p>
+                        <p class="text-slate-400 text-xs pt-2">* ใส่ Gemini API Key เพื่อสร้างข้อสอบปรนัย 4 ตัวเลือกพร้อมเฉลยอัตโนมัติเต็มรูปแบบ</p>
                     </div>`;
             }
         }
@@ -641,8 +600,6 @@
             if (!text) return;
             navigator.clipboard.writeText(text).then(() => {
                 alert('คัดลอกผลลัพธ์เรียบร้อยแล้ว!');
-            }).catch(() => {
-                alert('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาลากคลุมข้อความแล้วกด Ctrl+C');
             });
         }
     </script>
