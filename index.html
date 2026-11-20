@@ -116,18 +116,19 @@
         <div class="bg-[#0B132B] border border-white/15 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-                    <i data-lucide="sparkles" class="w-5 h-5 text-[#00D2FF]"></i> เชื่อมต่อ Google Gemini API
+                    <i data-lucide="sparkles" class="w-5 h-5 text-[#00D2FF]"></i> เชื่อมต่อ AI API
                 </h3>
                 <button onclick="toggleApiModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <p class="text-xs text-slate-300 leading-relaxed">
-                ใส่ <strong>Gemini API Key</strong> ของคุณเพื่อให้ AI ตอบคำถาม สรุปเนื้อหา และสร้างข้อสอบจากบทเรียนได้จริง (หากยังไม่ใส่ ระบบจะใช้โหมดวิเคราะห์ข้อความพื้นฐานอัตโนมัติ)
+                ใส่ <strong>API Key</strong> ของคุณ (รองรับรูปแบบ <code>AQ.Ab...</code> หรือ <code>AIza...</code>) เพื่อให้ระบบสรุปเนื้อหา ตอบคำถาม และสร้างข้อสอบอัตโนมัติ
             </p>
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Gemini API Key (ขึ้นต้นด้วย AIza...)</label>
+                <label class="block text-xs text-slate-400 mb-1">API Key</label>
                 <input type="password" id="gemini-api-key" placeholder="วาง API Key ที่นี่..." class="w-full rounded-xl bg-[#070B19] border border-slate-700 focus:border-[#00D2FF] px-3.5 py-2.5 text-sm text-white outline-none">
             </div>
-            <div class="flex justify-end gap-2 pt-2">
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="resetDefaultKey()" class="text-xs text-slate-400 hover:text-cyan-300 underline">ใช้คีย์เริ่มต้น</button>
                 <button onclick="saveApiKey()" class="btn-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white">บันทึก API Key</button>
             </div>
         </div>
@@ -297,9 +298,13 @@
     <script>
         lucide.createIcons();
 
-        let currentMode = 'summary'; // 'summary' | 'qa' | 'quiz'
-        let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
+        // กำหนด API Key เริ่มต้นของคุณ
+        const DEFAULT_API_KEY = 'AQ.Ab8RN6LRAbE603pFro3AM5aax0Drq_fNVtHS7pUQML-MOo03hQ';
 
+        let currentMode = 'summary'; // 'summary' | 'qa' | 'quiz'
+        let geminiApiKey = localStorage.getItem('gemini_api_key') || DEFAULT_API_KEY;
+
+        // โหลดสถานะ API Key ทันทีเมื่อเปิดหน้าเว็บ
         if (geminiApiKey) {
             document.getElementById('gemini-api-key').value = geminiApiKey;
             updateApiBadge(true);
@@ -322,11 +327,19 @@
             toggleApiModal();
         }
 
+        function resetDefaultKey() {
+            geminiApiKey = DEFAULT_API_KEY;
+            localStorage.setItem('gemini_api_key', DEFAULT_API_KEY);
+            document.getElementById('gemini-api-key').value = DEFAULT_API_KEY;
+            updateApiBadge(true);
+            toggleApiModal();
+        }
+
         function updateApiBadge(connected) {
             const badge = document.getElementById('api-status-badge');
             if (connected) {
                 badge.className = 'self-start sm:self-end text-xs px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5';
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> เชื่อมต่อ Gemini AI API พร้อมใช้งานจริง';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> เชื่อมต่อ AI API พร้อมใช้งานจริง';
             } else {
                 badge.className = 'self-start sm:self-end text-xs px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1.5';
                 badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span> โหมดวิเคราะห์ในเครื่อง (ยังไม่ใส่ API Key)';
@@ -439,7 +452,7 @@
             }
         }
 
-        // Main Processing Function (Uses Real Gemini API if Key provided, otherwise Dynamic Local Analysis)
+        // Main Processing Function (Uses Real API if Key provided, otherwise Dynamic Local Analysis)
         async function processContent() {
             const rawText = document.getElementById('lesson-textarea').value.trim();
             const specificQuestion = document.getElementById('specific-question').value.trim();
@@ -452,14 +465,12 @@
             const resultSection = document.getElementById('result-section');
             const loadingState = document.getElementById('loading-state');
             const outputContent = document.getElementById('output-content');
-            const resultHeader = document.getElementById('result-header');
 
             resultSection.classList.remove('hidden');
             loadingState.classList.remove('hidden');
             outputContent.innerHTML = '';
             resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-            // 1. If user provided a real Gemini API Key -> Call Gemini API directly
             if (geminiApiKey) {
                 try {
                     const responseHTML = await callRealGeminiAPI(rawText, specificQuestion);
@@ -469,70 +480,78 @@
                 } catch (error) {
                     loadingState.classList.add('hidden');
                     outputContent.innerHTML = `
-                        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200">
-                            <strong>เกิดข้อผิดพลาดในการเชื่อมต่อ Gemini API:</strong> ${error.message}<br>
-                            <span class="text-xs text-slate-400">กรุณาตรวจสอบ API Key ในเมนู "ตั้งค่า API Key" ด้านบน</span>
-                        </div>`;
+                        <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200 space-y-2">
+                            <div><strong>เกิดข้อผิดพลาดในการเชื่อมต่อ API:</strong> ${escapeHTML(error.message)}</div>
+                            <div class="text-xs text-slate-300">
+                                ระบบได้สลับมาแสดงผลการวิเคราะห์เบื้องต้นให้ด้านล่างแทน หรือตรวจสอบสิทธิ์ของ API Key ที่เมนู "ตั้งค่า API Key"
+                            </div>
+                        </div>
+                        ${generateDynamicLocalResponse(rawText, specificQuestion)}`;
                     return;
                 }
             }
 
-            // 2. Fallback: Dynamic Text Processing based strictly on user's actual input (No hardcoded IoT text!)
             setTimeout(() => {
                 loadingState.classList.add('hidden');
                 outputContent.innerHTML = generateDynamicLocalResponse(rawText, specificQuestion);
             }, 600);
         }
 
-        // Call Google Gemini API
+        // Call Google Gemini / Vertex Express API
         async function callRealGeminiAPI(content, question) {
             let prompt = '';
             const headerEl = document.getElementById('result-header');
 
             if (currentMode === 'summary') {
-                headerEl.textContent = 'สรุปประเด็นสำคัญจากเนื้อหาของคุณ (Gemini AI)';
+                headerEl.textContent = 'สรุปประเด็นสำคัญจากเนื้อหาของคุณ (AI)';
                 prompt = `จงสรุปใจความสำคัญจากเนื้อหาต่อไปนี้ให้อ่านเข้าใจง่าย เป็นข้อๆ (Bullet points) ภาษาไทยที่กระชับและชัดเจน ห้ามแต่งข้อมูลเพิ่มนอกเหนือจากเนื้อหา:\n\nเนื้อหา:\n${content}`;
             } else if (currentMode === 'qa') {
                 headerEl.textContent = 'คำตอบจาก AI Tutor (ตรงตามคำถามและเนื้อหา)';
                 if (question && content) {
                     prompt = `อ้างอิงจากเนื้อหาที่ให้มานี้เท่านั้น จงตอบคำถามให้ตรงประเด็นและชัดเจน:\n\nเนื้อหา:\n${content}\n\nคำถาม:\n${question}`;
                 } else {
-                    prompt = `จงตอบคำถามต่อไปนี้อย่างละเอียด เข้าใจง่าย พร้อมยกตัวอย่างประกอบสำหรับนักศึกษาระดับ ปวส.:\n\nคำถาม:\n${question || content}`;
+                    prompt = `จงตอบคำถามต่อไปนี้อย่างละเอียด เข้าใจง่าย พร้อมยกตัวอย่างประกอบ:\n\nคำถาม:\n${question || content}`;
                 }
             } else if (currentMode === 'quiz') {
-                headerEl.textContent = 'แบบทดสอบและเฉลยจากเนื้อหาของคุณ (Gemini AI)';
+                headerEl.textContent = 'แบบทดสอบและเฉลยจากเนื้อหาของคุณ (AI)';
                 prompt = `จากเนื้อหาต่อไปนี้ จงสร้างข้อสอบปรนัย 4 ตัวเลือก (ก, ข, ค, ง) จำนวน 3 ข้อ ที่ถามตรงกับเนื้อหาที่ให้มา พร้อมระบุข้อที่ถูกต้องและคำอธิบายเฉลยสั้นๆ:\n\nเนื้อหา:\n${content}`;
             }
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
+
+            const res = await fetch(endpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': geminiApiKey
+                },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }]
                 })
             });
 
             if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.error?.message || 'ไม่สามารถเชื่อมต่อ API ได้');
+                let errMsg = `HTTP Error ${res.status}`;
+                try {
+                    const errData = await res.json();
+                    errMsg = errData.error?.message || errMsg;
+                } catch (_) {}
+                throw new Error(errMsg);
             }
 
             const data = await res.json();
-            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับข้อความตอบกลับ';
+            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับข้อความตอบกลับจากระบบ';
 
-            // Format markdown-like bold and line breaks cleanly
-            const formatted = aiText
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            const formatted = escapeHTML(aiText)
                 .replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-300">$1</strong>')
                 .replace(/\n/g, '<br>');
 
             return `<div class="p-5 rounded-xl bg-[#070B19]/80 border border-white/10 leading-relaxed text-slate-200">${formatted}</div>`;
         }
 
-        // Dynamic Local Analysis (Strictly uses user's own sentences/questions)
+        // Dynamic Local Analysis (Fallback)
         function generateDynamicLocalResponse(rawText, specificQuestion) {
             const headerEl = document.getElementById('result-header');
-            // Split user input into clean sentences/lines
             const sentences = rawText
                 .split(/[\n\r]+|(?<=[.!?])\s+/)
                 .map(s => s.trim())
@@ -544,80 +563,87 @@
                 const listHTML = points.map(p => `<li>${escapeHTML(p)}</li>`).join('');
                 return `
                     <div class="p-5 rounded-xl bg-[#070B19]/80 border border-blue-500/20 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <h4 class="font-semibold text-[#00D2FF]">สรุปใจความสำคัญ (${points.length} ประเด็นหลักจากข้อความของคุณ):</h4>
-                        </div>
-                        <ul class="list-disc list-inside space-y-2 text-slate-200">${listHTML}</ul>
-                        <p class="text-xs text-slate-400 pt-2 border-t border-white/5">* เคล็ดลับ: หากต้องการให้ AI วิเคราะห์เชิงลึกและเรียบเรียงภาษาใหม่ทั้งหมด สามารถใส่ Gemini API Key ฟรีได้ที่ปุ่มมุมขวาบน</p>
+                        <h4 class="font-semibold text-[#00D2FF]">สรุปใจความสำคัญ (${points.length} ประเด็นหลักจากข้อความของคุณ):</h4>
+                        <ul class="list-disc list-inside space-y-2 text-slate-300">
+                            ${listHTML}
+                        </ul>
                     </div>`;
             }
 
             if (currentMode === 'qa') {
-                headerEl.textContent = 'คำตอบตรงตามคำถามและเนื้อหาของคุณ';
-                const userQuery = specificQuestion || rawText;
-                
-                // Search for matching keywords from the question inside the provided content
-                let matchedContext = '';
-                if (specificQuestion && sentences.length > 0) {
-                    const keywords = specificQuestion.split(/\s+/).filter(w => w.length > 2);
-                    const relevant = sentences.filter(s => keywords.some(k => s.includes(k)));
-                    matchedContext = relevant.length > 0 ? relevant.join(' ') : sentences[0];
-                } else if (sentences.length > 0) {
-                    matchedContext = sentences.join(' ');
+                headerEl.textContent = 'คำตอบจากการค้นหาในเนื้อหาของคุณ';
+                const query = specificQuestion || rawText;
+                const keywords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+
+                let matched = sentences.filter(s =>
+                    keywords.some(kw => s.toLowerCase().includes(kw))
+                );
+
+                if (matched.length === 0 && sentences.length > 0) {
+                    matched = sentences.slice(0, 3);
                 }
+
+                const answerHTML = matched.length > 0
+                    ? matched.map(m => `<p class="p-3 rounded-lg bg-white/5 border border-white/5 text-slate-200">${escapeHTML(m)}</p>`).join('')
+                    : `<p class="text-slate-300">ได้รับคำถาม: <strong>"${escapeHTML(query)}"</strong></p>`;
 
                 return `
                     <div class="p-5 rounded-xl bg-[#070B19]/80 border border-teal-500/20 space-y-3">
-                        <div class="bg-teal-950/40 border border-teal-500/20 p-3 rounded-lg">
-                            <span class="text-xs text-teal-300 font-semibold">คำถามของคุณ:</span>
-                            <p class="text-white font-medium mt-0.5">"${escapeHTML(userQuery)}"</p>
-                        </div>
-                        <div class="space-y-1.5">
-                            <span class="text-xs text-cyan-300 font-semibold">คำตอบจากเนื้อหาที่ตรวจพบ:</span>
-                            <p class="text-slate-200 leading-relaxed">
-                                ${specificQuestion && rawText 
-                                    ? `จากเนื้อหาบทเรียนที่คุณป้อนเข้ามา ข้อมูลที่ตรงกับคำถามของคุณคือ: <strong>"${escapeHTML(matchedContext)}"</strong>` 
-                                    : `ระบบได้รับคำถามของคุณเรียบร้อยแล้ว กรุณาใส่ <strong>Gemini API Key</strong> ที่เมนูตั้งค่าด้านบน เพื่อให้ AI ประมวลผลคำตอบเชิงลึกสำหรับคำถาม "${escapeHTML(userQuery)}" ได้ทันทีครับ`}
-                            </p>
+                        <div class="text-xs text-teal-300 font-medium">คำถามของคุณ: "${escapeHTML(query)}"</div>
+                        <div class="space-y-2">
+                            <h4 class="font-semibold text-white">ส่วนที่เกี่ยวข้องจากเนื้อหา:</h4>
+                            ${answerHTML}
                         </div>
                     </div>`;
             }
 
             if (currentMode === 'quiz') {
-                headerEl.textContent = 'แบบทดสอบที่สร้างจากเนื้อหาของคุณ';
-                // Generate dynamic questions directly from user's sentences
-                const quizItems = sentences.length > 0 ? sentences.slice(0, 3) : [rawText];
-                const quizHTML = quizItems.map((sentence, idx) => {
-                    const words = sentence.split(/\s+/).filter(w => w.length > 2);
-                    const targetWord = words.length > 2 ? words[Math.floor(words.length / 2)] : (words[0] || 'คำตอบ');
-                    const blankedSentence = sentence.replace(targetWord, ' [ .......... ] ');
+                headerEl.textContent = 'แบบฝึกหัดทบทวนความจำจากเนื้อหาของคุณ';
+                const sampleSentences = sentences.length > 0 ? sentences.slice(0, 3) : [rawText];
+
+                const quizHTML = sampleSentences.map((sentence, idx) => {
+                    const words = sentence.split(/\s+/).filter(w => w.length > 3);
+                    const targetWord = words[Math.floor(words.length / 2)] || words[0] || 'คำสำคัญ';
+                    const blankedSentence = sentence.replace(targetWord, ' ________ ');
 
                     return `
-                        <div class="p-4 rounded-xl bg-[#070B19]/90 border border-purple-500/20 space-y-3">
-                            <p class="font-medium text-white">ข้อที่ ${idx + 1}: จงเติมคำหรือข้อความที่หายไปให้สมบูรณ์ตามเนื้อหาบทเรียน<br>
-                            <span class="text-cyan-200 font-normal">"${escapeHTML(blankedSentence)}"</span></p>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                <div class="p-2.5 rounded-lg bg-emerald-500/20 border border-emerald-400/50 text-emerald-200 font-medium">ก. ${escapeHTML(targetWord)} (คำตอบที่ถูกต้อง ✓)</div>
-                                <div class="p-2.5 rounded-lg bg-white/5 border border-white/10 text-slate-400">ข. ไม่มีข้อใดกล่าวถึงในเนื้อหา</div>
-                            </div>
-                            <p class="text-xs text-slate-400 bg-white/5 p-2.5 rounded-lg">
-                                <strong class="text-purple-300">เฉลยอ้างอิงจากเนื้อหาจริง:</strong> "${escapeHTML(sentence)}"
-                            </p>
+                        <div class="p-4 rounded-xl bg-white/5 border border-purple-500/20 space-y-2">
+                            <p class="font-medium text-purple-300">ข้อที่ ${idx + 1}. จงเติมคำในช่องว่างให้ถูกต้องตามเนื้อหาบทเรียน:</p>
+                            <p class="text-slate-200">"${escapeHTML(blankedSentence)}"</p>
+                            <details class="pt-1">
+                                <summary class="text-xs text-cyan-400 cursor-pointer hover:underline">คลิกเพื่อดูเฉลย</summary>
+                                <p class="mt-1.5 text-xs text-emerald-300 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                                    <strong>เฉลย:</strong> ${escapeHTML(targetWord)}
+                                </p>
+                            </details>
                         </div>`;
                 }).join('');
 
-                return `<div class="space-y-4">${quizHTML}</div>`;
+                return `
+                    <div class="p-5 rounded-xl bg-[#070B19]/80 border border-purple-500/20 space-y-4">
+                        <h4 class="font-semibold text-purple-300">แบบทดสอบจากเนื้อหา (${sampleSentences.length} ข้อ):</h4>
+                        ${quizHTML}
+                    </div>`;
             }
         }
 
         function escapeHTML(str) {
-            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function copyResult() {
             const text = document.getElementById('output-content').innerText;
-            navigator.clipboard.writeText(text);
-            alert('คัดลอกผลลัพธ์ไปยังคลิปบอร์ดแล้ว!');
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('คัดลอกผลลัพธ์เรียบร้อยแล้ว!');
+            }).catch(() => {
+                alert('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาลากคลุมข้อความแล้วกด Ctrl+C');
+            });
         }
     </script>
 </body>
