@@ -25,9 +25,8 @@
   </style>
 </head>
 <body class="antialiased flex selection:bg-cyan-500 selection:text-white">
-  <!-- ส่วนที่ 1: แถบซ้ายสไตล์ Gemini (สีพื้นหลังเดียวกับรายการโปรเจ็กต์ #161F33) -->
+  <!-- ส่วนที่ 1: แถบซ้ายสไตล์ Gemini -->
   <aside id="sidebar" style="width:270px" class="bg-[#161F33] text-white flex flex-col shrink-0 transition-[width] duration-150 overflow-hidden z-20 select-none">
-    <!-- แถวบนสุด: ชื่อเว็บซ้ายสุด + ปุ่มค้นหา และ ปุ่มย่อ-ขยาย ฝั่งขวา -->
     <div class="h-14 px-3.5 flex items-center justify-between gap-2 shrink-0">
       <a href="#" onclick="resetWorkspace()" class="flex items-center gap-1 text-lg font-bold tracking-tight truncate">
         <span class="text-[#00D2FF]">AI</span><span>Study Assistant</span>
@@ -38,12 +37,10 @@
       </div>
     </div>
 
-    <!-- ช่องค้นหาโปรเจ็กต์ (ซ่อน/แสดงเมื่อกดปุ่มค้นหา) -->
     <div id="search-box" class="hidden px-3 pb-2">
       <input type="text" id="project-search" oninput="renderProjects()" placeholder="ค้นหาชื่อโปรเจ็กต์..." class="w-full rounded-lg bg-[#0B132B] border border-white/10 focus:border-[#00D2FF] px-3 py-1.5 text-xs text-white placeholder-slate-400 outline-none">
     </div>
 
-    <!-- เมนูหลักซ้ายสุดเรียงลงมา: โปรเจ็กต์ใหม่ -> หน้าแรก -> ตั้งค่า API Key -->
     <nav class="px-2.5 py-1.5 space-y-1 border-b border-white/10 text-xs font-medium">
       <button onclick="resetWorkspace()" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white transition text-left">
         <i data-lucide="square-pen" class="w-4 h-4 text-[#00D2FF] shrink-0"></i><span>โปรเจ็กต์ใหม่</span>
@@ -57,7 +54,6 @@
       </button>
     </nav>
 
-    <!-- หัวข้อ "โปรเจ็กต์" + ฟิลเตอร์ฝั่งขวาแถวเดียวกัน -->
     <div class="px-3.5 pt-3 pb-1.5 flex items-center justify-between gap-2">
       <span class="text-xs font-semibold text-slate-300">โปรเจ็กต์</span>
       <div class="relative">
@@ -71,11 +67,9 @@
       </div>
     </div>
 
-    <!-- รายการโปรเจ็กต์ (ระบุจุดสีหน้าโปรเจ็กต์) -->
     <div id="project-list" class="flex-1 overflow-y-auto px-2.5 py-1 space-y-1"></div>
   </aside>
 
-  <!-- ตัวลากปรับขนาดความกว้าง Sidebar -->
   <div id="sidebar-resizer" class="resizer bg-slate-200/70 hidden sm:block shrink-0" title="ลากเพื่อปรับความกว้าง"></div>
 
   <!-- API Key Modal -->
@@ -94,16 +88,13 @@
     </div>
   </div>
 
-  <!-- ส่วนที่ 2, 3, 4: พื้นที่ฝั่งขวาพื้นหลังสีขาวสะอาดตา -->
+  <!-- พื้นที่ฝั่งขวา -->
   <main class="flex-1 bg-white flex flex-col overflow-hidden relative">
-    <!-- ปุ่มเปิด Sidebar กลับคืนเมื่อถูกพับซ่อน -->
     <button id="expand-btn" onclick="toggleSidebar()" title="ขยายแถบโปรเจ็กต์" class="hidden fixed top-3.5 left-3.5 z-30 p-2 rounded-xl bg-[#161F33] text-white shadow-lg hover:opacity-90 transition">
       <i data-lucide="panel-left" class="w-4 h-4"></i>
     </button>
 
-    <!-- ส่วนที่ 2 & 3: พื้นที่แสดงผลและข้อความต้อนรับ -->
     <div id="chat-scroll" class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 flex flex-col">
-      <!-- ส่วนที่ 3: Welcome Screen ตรงกลาง (เปลี่ยนสีตัวอักษรเป็นสีเข้มให้ชัดเจนบนพื้นขาว) -->
       <div id="welcome-view" class="my-auto mx-auto max-w-2xl text-center space-y-3 py-8">
         <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
           ยินดีต้อนรับสู่ <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00A8E8] to-[#7C3AED]">AI Study Assistant</span>
@@ -113,15 +104,13 @@
         </p>
       </div>
 
-      <!-- พื้นที่แสดงบทสนทนาและผลลัพธ์ -->
       <div id="chat-thread" class="hidden max-w-3xl w-full mx-auto space-y-5 pb-4"></div>
     </div>
 
-    <!-- ส่วนที่ 4: แถบป้อนข้อความด้านล่าง (สมมาตรบน-ล่าง + Dropdown มีจุดสี) -->
+    <!-- ส่วนที่ 4: ปรับขอบบน-ล่างให้สมมาตรกันเป๊ะ (ลบ space-y-2 ออก แล้วย้ายไปใส่ mb-2 ที่แถบแนบไฟล์) -->
     <div class="px-4 sm:px-8 pb-5 pt-2 bg-white shrink-0">
-      <div class="max-w-3xl mx-auto bg-slate-100 border border-slate-200 focus-within:border-[#00B4DB] focus-within:bg-white focus-within:shadow-lg rounded-2xl p-2 transition space-y-2">
-        <!-- แสดงไฟล์/รูปภาพที่แนบ -->
-        <div id="attachment-bar" class="hidden flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs">
+      <div class="max-w-3xl mx-auto bg-slate-100 border border-slate-200 focus-within:border-[#00B4DB] focus-within:bg-white focus-within:shadow-lg rounded-2xl p-2 transition">
+        <div id="attachment-bar" class="hidden mb-2 flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs">
           <div class="flex items-center gap-2 truncate text-sky-600 font-medium">
             <i data-lucide="paperclip" class="w-3.5 h-3.5 shrink-0"></i>
             <span id="attachment-name" class="truncate"></span>
@@ -129,16 +118,14 @@
           <button onclick="clearAttachment()" class="text-slate-400 hover:text-rose-500 ml-2"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
 
-        <!-- แถวเครื่องมือหลักจัดกึ่งกลางแนวตั้งให้สมมาตรบน-ล่าง -->
         <div class="flex items-center gap-2">
           <input type="file" id="file-upload" class="hidden" accept=".pdf,.txt,image/*" onchange="handleFile(event)">
           <button onclick="$('file-upload').click()" title="เพิ่มไฟล์ PDF, TXT หรือรูปภาพ" class="w-10 h-10 rounded-xl bg-white hover:bg-slate-200/70 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-[#00A8E8] shrink-0 transition">
             <i data-lucide="plus" class="w-5 h-5"></i>
           </button>
 
-          <textarea id="lesson-textarea" rows="1" placeholder="วางเนื้อหาบทเรียน พิมพ์คำถาม หรือแนบไฟล์/รูปภาพที่นี่..." oninput="autoResize(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();processContent()}" class="flex-1 bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none resize-none max-h-36 py-2 px-1 leading-5"></textarea>
+          <textarea id="lesson-textarea" rows="1" placeholder="วางเนื้อหาบทเรียน พิมพ์คำถาม หรือแนบไฟล์/รูปภาพที่นี่..." oninput="autoResize(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();processContent()}" class="flex-1 bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none resize-none max-h-36 py-2.5 px-1 leading-5"></textarea>
 
-          <!-- Dropdown เลือกหัวข้อพร้อมจุดสีด้านหน้า -->
           <div class="relative shrink-0">
             <button type="button" onclick="toggleModeMenu()" class="h-10 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs sm:text-sm font-medium text-slate-800 flex items-center gap-2 transition">
               <span id="mode-dot" class="w-2.5 h-2.5 rounded-full bg-[#00D2FF]"></span>
@@ -174,7 +161,6 @@
     let projects = JSON.parse(localStorage.getItem('study_projects') || '[]');
     let activeProjectId = null, attachedFileText = '', attachedImage = null, attachLabel = '', sidebarOpen = true, lastWidth = 270;
 
-    // API Key & สถานะจุดสีเขียว/เหลืองหลังหัวข้อตั้งค่า API Key
     const toggleModal = () => $('api-modal').classList.toggle('hidden');
     function updateApiDot(ok) {
       const d = $('api-dot');
@@ -188,7 +174,6 @@
     }
     if (apiKey) { $('gemini-api-key').value = apiKey; updateApiDot(true); }
 
-    // Sidebar ย่อ-ขยาย + ค้นหา + ปรับความกว้าง
     function toggleSidebar() {
       const sb = $('sidebar');
       sidebarOpen = !sidebarOpen;
@@ -212,7 +197,6 @@
       window.addEventListener('mouseup', onUp);
     });
 
-    // จัดการโปรเจ็กต์ (มีจุดสีหน้าโปรเจ็กต์ + ค้นหา + ฟิลเตอร์)
     function renderProjects() {
       const kw = ($('project-search')?.value || '').trim().toLowerCase();
       const ft = $('project-filter')?.value || 'all';
@@ -273,7 +257,6 @@
       renderProjects();
     }
 
-    // Dropdown เลือกหัวข้อพร้อมจุดสี
     function toggleModeMenu() { $('mode-menu').classList.toggle('hidden'); }
     function selectMode(m) {
       currentMode = m;
@@ -311,7 +294,6 @@
       } catch { $('attachment-name').textContent = `ไม่สามารถอ่านไฟล์ ${file.name} ได้`; }
     }
 
-    // แสดงผล Bubble บนพื้นหลังสีขาว
     function renderBubble(msg) {
       const m = MODES[msg.mode] || MODES.summary;
       if (msg.role === 'user') {
