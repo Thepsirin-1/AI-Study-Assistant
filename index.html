@@ -15,277 +15,424 @@
     tailwind.config = { theme: { extend: { fontFamily: { sans: ['Prompt', 'sans-serif'] }, colors: { navy: { 950: '#070B19', 900: '#0B132B', 850: '#101B3B', 800: '#162447' }, cyan: { 450: '#00D2FF' } } } } };
   </script>
   <style>
-    body{background:#070B19 radial-gradient(circle at 15% 15%,rgba(0,210,255,.08) 0,transparent 40%),radial-gradient(circle at 85% 30%,rgba(124,58,237,.08) 0,transparent 45%);color:#fff;min-height:100vh}
-    .glass-card{background:rgba(16,27,59,.65);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);transition:.3s cubic-bezier(.4,0,.2,1)}
-    .glass-card:hover{transform:translateY(-3px);border-color:rgba(0,210,255,.35)}
-    .card-active-blue{background:linear-gradient(135deg,rgba(14,58,108,.85),rgba(16,27,59,.9));border-color:rgba(0,210,255,.5);box-shadow:0 8px 25px -8px rgba(0,210,255,.25)}
-    .card-active-teal{background:linear-gradient(135deg,rgba(13,74,94,.85),rgba(16,27,59,.9));border-color:rgba(20,184,166,.5);box-shadow:0 8px 25px -8px rgba(20,184,166,.25)}
-    .card-active-purple{background:linear-gradient(135deg,rgba(67,29,114,.85),rgba(16,27,59,.9));border-color:rgba(139,92,246,.5);box-shadow:0 8px 25px -8px rgba(139,92,246,.25)}
-    .btn-gradient{background:linear-gradient(90deg,#00B4DB,#6366F1 55%,#8B5CF6);transition:.3s}
-    .btn-gradient:hover{opacity:.92;box-shadow:0 0 20px rgba(99,102,241,.5);transform:translateY(-1px)}
-    .nav-link{position:relative;color:#94A3B8;transition:color .2s}
+    body{background:#070B19 radial-gradient(circle at 20% 20%,rgba(0,210,255,.07) 0,transparent 40%),radial-gradient(circle at 85% 30%,rgba(124,58,237,.07) 0,transparent 45%);color:#fff;height:100vh;overflow:hidden}
+    .glass{background:rgba(16,27,59,.72);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08)}
+    .btn-gradient{background:linear-gradient(90deg,#00B4DB,#6366F1 55%,#8B5CF6);transition:.2s}
+    .btn-gradient:hover{opacity:.9;box-shadow:0 0 16px rgba(99,102,241,.45)}
+    .nav-link{position:relative;color:#94A3B8;transition:.2s}
     .nav-link:hover,.nav-link.active{color:#fff}
     .nav-link.active::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:24px;height:3px;background:#00D2FF;border-radius:99px;box-shadow:0 0 8px #00D2FF}
-    .dropzone-border{background-image:url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23334155' stroke-width='2' stroke-dasharray='8%2c 8' stroke-linecap='square'/%3e%3c/svg%3e")}
-    .dropzone-border:hover{background-image:url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%2300D2FF' stroke-width='2' stroke-dasharray='8%2c 8' stroke-linecap='square'/%3e%3c/svg%3e");background-color:rgba(0,210,255,.04)}
+    .resizer{width:4px;cursor:col-resize;transition:.2s}
+    .resizer:hover,.resizer.dragging{background:#00D2FF}
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:99px}
   </style>
 </head>
-<body class="antialiased selection:bg-cyan-500 selection:text-white">
-  <header class="border-b border-white/10 bg-[#070B19]/80 backdrop-blur-md sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <a href="#" class="flex items-center gap-1.5 text-xl font-bold tracking-tight"><span class="text-[#00D2FF]">AI</span><span class="text-white">Study Assistant</span></a>
-      <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
-        <a href="#" onclick="setActiveNav(this)" class="nav-link active">หน้าแรก</a>
-        <a href="#lessons" onclick="setActiveNav(this)" class="nav-link">บทเรียนของฉัน</a>
-        <a href="#history" onclick="setActiveNav(this)" class="nav-link">ประวัติการเรียน</a>
-        <button onclick="toggleModal()" class="nav-link flex items-center gap-1.5 text-cyan-300 hover:text-cyan-200"><i data-lucide="key" class="w-4 h-4"></i> ตั้งค่า API Key</button>
-      </nav>
-      <button onclick="toggleModal()" class="md:hidden text-cyan-300 p-2 flex items-center gap-1 text-xs border border-cyan-500/30 rounded-lg"><i data-lucide="key" class="w-4 h-4"></i> API Key</button>
+<body class="antialiased flex flex-col selection:bg-cyan-500 selection:text-white">
+  <!-- ส่วนที่ 1 & 2: Header -->
+  <header class="border-b border-white/10 bg-[#070B19]/90 backdrop-blur-md h-14 px-4 sm:px-6 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebar()" title="ย่อ/ขยายแถบโปรเจ็กต์" class="p-1.5 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition"><i data-lucide="panel-left" class="w-5 h-5"></i></button>
+      <a href="#" onclick="resetWorkspace()" class="flex items-center gap-1.5 text-lg sm:text-xl font-bold tracking-tight"><span class="text-[#00D2FF]">AI</span><span class="text-white">Study Assistant</span></a>
     </div>
+    <nav class="flex items-center space-x-6 text-sm font-medium">
+      <a href="#" onclick="resetWorkspace()" class="nav-link active">หน้าแรก</a>
+      <button onclick="toggleModal()" class="nav-link flex items-center gap-1.5 text-cyan-300 hover:text-cyan-200"><i data-lucide="key" class="w-4 h-4"></i> ตั้งค่า API Key</button>
+    </nav>
   </header>
 
+  <!-- API Key Modal -->
   <div id="api-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-[#0B132B] border border-white/15 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-semibold text-white flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-[#00D2FF]"></i> เชื่อมต่อ AI API</h3>
         <button onclick="toggleModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <p class="text-xs text-slate-300 leading-relaxed">ใส่ <strong>Gemini API Key</strong> ของคุณ (เช่น <code>AIza...</code> จาก Google AI Studio) เพื่อให้ระบบสรุปเนื้อหา ตอบคำถาม และสร้างข้อสอบอัตโนมัติ</p>
-      <div>
-        <label class="block text-xs text-slate-400 mb-1">API Key</label>
-        <input type="password" id="gemini-api-key" placeholder="วาง API Key ที่นี่..." class="w-full rounded-xl bg-[#070B19] border border-slate-700 focus:border-[#00D2FF] px-3.5 py-2.5 text-sm text-white outline-none">
-      </div>
-      <div class="flex justify-between items-center pt-2">
+      <p class="text-xs text-slate-300 leading-relaxed">ใส่ <strong>Gemini API Key</strong> ของคุณ (เช่น <code>AIza...</code> จาก Google AI Studio) เพื่อสนทนา สรุปเนื้อหา สร้างแบบทดสอบ และวิเคราะห์รูปภาพ</p>
+      <input type="password" id="gemini-api-key" placeholder="วาง API Key ที่นี่..." class="w-full rounded-xl bg-[#070B19] border border-slate-700 focus:border-[#00D2FF] px-3.5 py-2.5 text-sm text-white outline-none">
+      <div class="flex justify-between items-center pt-1">
         <button onclick="saveKey('')" class="text-xs text-slate-400 hover:text-cyan-300 underline">ล้างคีย์</button>
         <button onclick="saveKey($('gemini-api-key').value.trim())" class="btn-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white">บันทึก API Key</button>
       </div>
     </div>
   </div>
 
-  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-    <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-      <div class="space-y-2">
-        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">ยินดีต้อนรับสู่ <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00D2FF] to-[#8B5CF6]">AI Study Assistant</span></h1>
-        <p class="text-slate-400 text-sm sm:text-base font-light">ผู้ช่วยอัจฉริยะของคุณในการเรียนรู้ สรุปบทเรียน ถาม-ตอบข้อสงสัย และสร้างแบบทดสอบอัตโนมัติ</p>
+  <!-- Layout หลัก -->
+  <div class="flex flex-1 overflow-hidden relative">
+    <!-- ส่วนที่ 3: แถบโปรเจ็กต์ฝั่งซ้าย -->
+    <aside id="sidebar" style="width:260px" class="bg-[#0B132B]/90 border-r border-white/10 flex flex-col shrink-0 transition-[width] duration-150 overflow-hidden z-20">
+      <div class="p-3 border-b border-white/10">
+        <button onclick="resetWorkspace()" class="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="plus" class="w-4 h-4 text-[#00D2FF]"></i> โปรเจ็กต์ใหม่
+        </button>
       </div>
-      <div id="api-status-badge" class="self-start sm:self-end text-xs px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> โหมดวิเคราะห์ในเครื่อง (ยังไม่ใส่ API Key)</div>
-    </section>
+      <div class="px-3 pt-3 pb-1 flex items-center justify-between text-[11px] text-slate-400">
+        <span>ประวัติโปรเจ็กต์</span>
+        <span class="flex items-center gap-2">
+          <span class="flex items-center gap-1"><i class="w-2 h-2 rounded-full bg-[#00D2FF]"></i>สรุป</span>
+          <span class="flex items-center gap-1"><i class="w-2 h-2 rounded-full bg-teal-400"></i>ถาม</span>
+          <span class="flex items-center gap-1"><i class="w-2 h-2 rounded-full bg-purple-400"></i>สอบ</span>
+        </span>
+      </div>
+      <div id="project-list" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
+    </aside>
 
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
-      <div id="card-summary" onclick="selectMode('summary')" class="glass-card card-active-blue rounded-2xl p-6 cursor-pointer flex items-start gap-4">
-        <div class="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-[#00D2FF]"><i data-lucide="file-text" class="w-6 h-6"></i></div>
-        <div class="space-y-1">
-          <div class="flex items-center gap-2"><h2 class="text-lg font-semibold text-white">สรุปบทเรียน</h2><span id="badge-summary" class="text-[10px] px-2 py-0.5 rounded-full bg-[#00D2FF]/20 text-[#00D2FF] border border-[#00D2FF]/30">กำลังเลือก</span></div>
-          <p class="text-xs sm:text-sm text-slate-300/80 leading-relaxed font-light">สรุปเนื้อหาให้เข้าใจง่าย รวดเร็ว จับประเด็นสำคัญครบถ้วน</p>
-        </div>
-      </div>
-      <div id="card-qa" onclick="selectMode('qa')" class="glass-card rounded-2xl p-6 cursor-pointer flex items-start gap-4">
-        <div class="w-12 h-12 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center shrink-0 text-teal-400"><i data-lucide="message-square-more" class="w-6 h-6"></i></div>
-        <div class="space-y-1">
-          <div class="flex items-center gap-2"><h2 class="text-lg font-semibold text-white">ถาม AI</h2><span id="badge-qa" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-teal-400/20 text-teal-300 border border-teal-400/30">กำลังเลือก</span></div>
-          <p class="text-xs sm:text-sm text-slate-300/80 leading-relaxed font-light">ถามคำถาม ได้คำตอบตรงตามบริบทและเนื้อหาที่ป้อนเข้ามา</p>
-        </div>
-      </div>
-      <div id="card-quiz" onclick="selectMode('quiz')" class="glass-card rounded-2xl p-6 cursor-pointer flex items-start gap-4">
-        <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center shrink-0 text-purple-400"><i data-lucide="clipboard-check" class="w-6 h-6"></i></div>
-        <div class="space-y-1">
-          <div class="flex items-center gap-2"><h2 class="text-lg font-semibold text-white">สร้างข้อสอบ</h2><span id="badge-quiz" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-purple-400/20 text-purple-300 border border-purple-400/30">กำลังเลือก</span></div>
-          <p class="text-xs sm:text-sm text-slate-300/80 leading-relaxed font-light">สร้างแบบฝึกหัดและข้อสอบอัตโนมัติ พร้อมเฉลยตรงตามเนื้อหา</p>
-        </div>
-      </div>
-    </section>
+    <!-- ตัวลากปรับขนาดความกว้าง Sidebar -->
+    <div id="sidebar-resizer" class="resizer bg-transparent hidden sm:block shrink-0" title="ลากเพื่อปรับความกว้าง"></div>
 
-    <section class="glass-card rounded-2xl p-6 sm:p-8 space-y-5">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div class="flex items-center gap-2.5"><div class="w-2 h-6 rounded-full bg-[#00D2FF]"></div><h3 id="workspace-heading" class="text-lg sm:text-xl font-semibold text-white">วางเนื้อหาบทเรียนของคุณ</h3></div>
-        <div class="inline-flex rounded-lg bg-[#070B19]/80 p-1 border border-white/10 self-start">
-          <button id="tab-text" onclick="switchInput('text')" class="px-3.5 py-1.5 rounded-md text-xs font-medium bg-[#162447] text-[#00D2FF] shadow transition"><span class="flex items-center gap-1.5"><i data-lucide="align-left" class="w-3.5 h-3.5"></i> พิมพ์ / วางข้อความ</span></button>
-          <button id="tab-file" onclick="switchInput('file')" class="px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition"><span class="flex items-center gap-1.5"><i data-lucide="upload" class="w-3.5 h-3.5"></i> อัปโหลดไฟล์ PDF/TXT</span></button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        <div class="lg:col-span-8 flex flex-col space-y-3">
-          <div id="input-text-area" class="flex-1 flex flex-col">
-            <textarea id="lesson-textarea" rows="7" placeholder="วางเนื้อหาบทเรียนที่ต้องการสรุป / สร้างข้อสอบ หรือพิมพ์คำถามของคุณที่นี่..." class="w-full flex-1 rounded-xl bg-[#070B19]/90 border border-slate-700/80 focus:border-[#00D2FF] focus:ring-1 focus:ring-[#00D2FF] p-4 text-sm text-white placeholder-slate-500 outline-none resize-none transition"></textarea>
+    <!-- พื้นที่ทำงานหลัก -->
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+      <div id="chat-scroll" class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 flex flex-col">
+        <!-- ส่วนที่ 5: Welcome Screen ตรงกลาง -->
+        <div id="welcome-view" class="my-auto mx-auto max-w-2xl text-center space-y-4 py-8">
+          <div id="api-status-badge" class="inline-flex text-xs px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 items-center gap-1.5 mx-auto">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span> โหมดวิเคราะห์ในเครื่อง (ยังไม่ใส่ API Key)
           </div>
-          <div id="input-file-area" onclick="$('file-upload').click()" class="hidden dropzone-border rounded-xl p-8 flex-1 min-h-[210px] flex flex-col items-center justify-center text-center cursor-pointer group">
-            <input type="file" id="file-upload" class="hidden" accept=".pdf,.txt" onchange="handleFile(event)">
-            <div class="w-14 h-14 rounded-full bg-[#162447]/80 border border-white/10 flex items-center justify-center mb-3 text-slate-300 group-hover:text-[#00D2FF] transition-all"><i data-lucide="upload" class="w-6 h-6"></i></div>
-            <p id="file-name-display" class="text-sm sm:text-base font-medium text-white mb-1">คลิกเพื่อเลือกไฟล์ PDF หรือไฟล์ข้อความ (.txt)</p>
-            <p class="text-xs text-slate-400">ระบบจะดึงข้อความจากไฟล์ของคุณมาวิเคราะห์โดยตรง</p>
-          </div>
-          <div id="qa-question-box" class="hidden">
-            <label class="block text-xs text-teal-300 mb-1.5 font-medium">คำถามเฉพาะเจาะจงเกี่ยวกับเนื้อหาด้านบน (ไม่บังคับ หากพิมพ์คำถามในช่องด้านบนแล้ว):</label>
-            <input type="text" id="specific-question" placeholder="เช่น จากเนื้อหาด้านบน จงอธิบายความแตกต่างระหว่าง..." class="w-full rounded-xl bg-[#070B19]/90 border border-teal-500/40 focus:border-teal-400 px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none">
-          </div>
+          <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-white">
+            ยินดีต้อนรับสู่ <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00D2FF] to-[#8B5CF6]">AI Study Assistant</span>
+          </h1>
+          <p class="text-slate-400 text-sm sm:text-base font-light max-w-xl mx-auto">
+            ผู้ช่วยอัจฉริยะของคุณในการเรียนรู้ สรุปบทเรียน ถาม-ตอบข้อสงสัย และสร้างแบบทดสอบอัตโนมัติ
+          </p>
         </div>
 
-        <div class="lg:col-span-4 rounded-xl bg-[#070B19]/60 border border-white/5 p-6 flex flex-col items-center justify-center text-center space-y-5">
-          <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-[#00D2FF]/20 to-[#8B5CF6]/20 border border-white/10 flex items-center justify-center text-[#00D2FF]"><i data-lucide="brain-circuit" class="w-6 h-6"></i></div>
-          <div class="space-y-1.5">
-            <p id="action-title" class="text-sm sm:text-base font-medium text-white">ให้ AI วิเคราะห์เนื้อหา</p>
-            <p id="action-desc" class="text-xs text-slate-400 leading-relaxed">ประมวลผลตรงตามเนื้อหาและคำถามที่คุณป้อนเข้าไป</p>
-          </div>
-          <button id="analyze-btn" onclick="processContent()" class="btn-gradient w-full py-3 px-6 rounded-xl font-semibold text-sm text-white shadow-lg flex items-center justify-center gap-2 cursor-pointer">
-            <i data-lucide="sparkles" class="w-4 h-4"></i><span id="btn-text">วิเคราะห์และสรุป</span>
-          </button>
-        </div>
+        <!-- พื้นที่แสดงบทสนทนาแบบ AI Chat -->
+        <div id="chat-thread" class="hidden max-w-3xl w-full mx-auto space-y-6 pb-4"></div>
       </div>
-    </section>
 
-    <section id="result-section" class="hidden glass-card rounded-2xl p-6 sm:p-8 border border-[#00D2FF]/30 space-y-6">
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
-        <div class="flex items-center gap-2.5">
-          <span class="flex h-3 w-3 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00D2FF] opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-[#00D2FF]"></span></span>
-          <h3 id="result-header" class="text-lg font-semibold text-white">ผลลัพธ์การวิเคราะห์</h3>
+      <!-- ส่วนที่ 4: แถบป้อนข้อความด้านล่างสไตล์ AI Chat -->
+      <div class="p-3 sm:p-5 pt-2 shrink-0">
+        <div class="max-w-3xl mx-auto glass rounded-2xl p-2.5 sm:p-3 border border-white/15 focus-within:border-[#00D2FF]/60 shadow-2xl space-y-2">
+          <div id="attachment-bar" class="hidden flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs">
+            <div class="flex items-center gap-2 truncate text-cyan-300">
+              <i data-lucide="paperclip" class="w-3.5 h-3.5 shrink-0"></i>
+              <span id="attachment-name" class="truncate"></span>
+            </div>
+            <button onclick="clearAttachment()" class="text-slate-400 hover:text-rose-400 ml-2"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+
+          <div class="flex items-end gap-2">
+            <input type="file" id="file-upload" class="hidden" accept=".pdf,.txt,image/*" onchange="handleFile(event)">
+            <button onclick="$('file-upload').click()" title="เพิ่มไฟล์ PDF, TXT หรือรูปภาพ" class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-300 hover:text-[#00D2FF] shrink-0 transition">
+              <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+
+            <textarea id="lesson-textarea" rows="1" placeholder="วางเนื้อหาบทเรียน พิมพ์คำถาม หรือแนบไฟล์/รูปภาพที่นี่..." oninput="autoResize(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();processContent()}" class="flex-1 bg-transparent text-sm text-white placeholder-slate-400 outline-none resize-none max-h-40 py-2 px-1 leading-relaxed"></textarea>
+
+            <div class="relative shrink-0">
+              <select id="mode-select" onchange="onModeChange()" class="appearance-none h-10 pl-3 pr-8 rounded-xl bg-[#070B19] border border-white/15 hover:border-[#00D2FF]/50 text-xs sm:text-sm font-medium text-white outline-none cursor-pointer transition">
+                <option value="summary">สรุปบทเรียน</option>
+                <option value="qa">ถาม AI</option>
+                <option value="quiz">สร้างแบบทดสอบ</option>
+              </select>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"></i>
+            </div>
+
+            <button onclick="processContent()" title="ส่งข้อความ" class="btn-gradient w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md">
+              <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+          </div>
         </div>
-        <button onclick="copyResult()" class="text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 flex items-center gap-1.5 transition"><i data-lucide="copy" class="w-3.5 h-3.5"></i> คัดลอกผลลัพธ์</button>
       </div>
-      <div id="loading-state" class="hidden py-10 flex flex-col items-center justify-center text-center space-y-3">
-        <div class="w-10 h-10 border-4 border-[#00D2FF]/30 border-t-[#00D2FF] rounded-full animate-spin"></div>
-        <p class="text-sm text-slate-300">กำลังวิเคราะห์เนื้อหาและคำถามของคุณ...</p>
-      </div>
-      <div id="output-content" class="text-sm text-slate-200 leading-relaxed space-y-4"></div>
-    </section>
-  </main>
+    </main>
+  </div>
 
   <script>
     lucide.createIcons();
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-    const MODES = {
-      summary: ['card-active-blue', 'ให้ AI วิเคราะห์เนื้อหา', 'สรุปประเด็นสำคัญจากเนื้อหาที่คุณป้อนเข้าไป', 'วิเคราะห์และสรุป', 'วางเนื้อหาบทเรียนที่ต้องการให้สรุปประเด็นสำคัญที่นี่...', 'สรุปประเด็นสำคัญจากเนื้อหาของคุณ (AI)'],
-      qa: ['card-active-teal', 'ถามข้อสงสัยกับ AI Tutor', 'AI จะตอบคำถามโดยอ้างอิงจากเนื้อหาและคำถามของคุณโดยตรง', 'ส่งคำถามให้ AI', 'พิมพ์คำถามของคุณที่นี่ หรือวางเนื้อหาบทเรียนแล้วพิมพ์คำถามในช่องด้านล่าง...', 'คำตอบจาก AI Tutor (ตรงตามคำถามและเนื้อหา)'],
-      quiz: ['card-active-purple', 'สร้างแบบทดสอบอัตโนมัติ', 'ออกข้อสอบปรนัยพร้อมเฉลยจากเนื้อหาบทเรียนของคุณ', 'สร้างข้อสอบ', 'วางเนื้อหาบทเรียนที่ต้องการให้สร้างข้อสอบพร้อมเฉลยที่นี่...', 'แบบทดสอบและเฉลยจากเนื้อหาของคุณ (AI)']
+    const MODE_META = {
+      summary: { label: 'สรุปบทเรียน', dot: 'bg-[#00D2FF]', badge: 'text-[#00D2FF] bg-[#00D2FF]/15 border-[#00D2FF]/30', ph: 'วางเนื้อหาบทเรียน หรือกด + เพื่อแนบไฟล์ PDF/รูปภาพที่ต้องการสรุป...' },
+      qa: { label: 'ถาม AI', dot: 'bg-teal-400', badge: 'text-teal-300 bg-teal-400/15 border-teal-400/30', ph: 'พิมพ์คำถามที่สงสัย หรือถามต่อเนื่องจากคำตอบด้านบนได้เลย...' },
+      quiz: { label: 'สร้างแบบทดสอบ', dot: 'bg-purple-400', badge: 'text-purple-300 bg-purple-400/15 border-purple-400/30', ph: 'วางเนื้อหาบทเรียน หรือแนบไฟล์เพื่อสร้างข้อสอบพร้อมเฉลย...' }
     };
 
-    let currentMode = 'summary', apiKey = localStorage.getItem('gemini_api_key') || '';
-    const toggleModal = () => $('api-modal').classList.toggle('hidden');
-    const setActiveNav = el => { document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active')); el.classList.add('active'); };
+    let apiKey = localStorage.getItem('gemini_api_key') || '';
+    let projects = JSON.parse(localStorage.getItem('study_projects') || '[]');
+    let activeProjectId = null, attachedFileText = '', attachedImage = null, attachLabel = '', sidebarOpen = true, lastWidth = 260;
 
+    // API Key Management
+    const toggleModal = () => $('api-modal').classList.toggle('hidden');
     function updateBadge(ok) {
       const b = $('api-status-badge');
-      b.className = `self-start sm:self-end text-xs px-3 py-1.5 rounded-full border flex items-center gap-1.5 ${ok ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/10 text-amber-300 border-amber-500/30'}`;
+      b.className = `inline-flex text-xs px-3 py-1 rounded-full border items-center gap-1.5 mx-auto ${ok ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/10 text-amber-300 border-amber-500/30'}`;
       b.innerHTML = `<span class="w-2 h-2 rounded-full ${ok ? 'bg-emerald-400' : 'bg-amber-400'}"></span> ${ok ? 'เชื่อมต่อ AI API พร้อมใช้งานจริง' : 'โหมดวิเคราะห์ในเครื่อง (ยังไม่ใส่ API Key)'}`;
     }
-
     function saveKey(k) {
-      apiKey = k;
-      $('gemini-api-key').value = k;
+      apiKey = k; $('gemini-api-key').value = k;
       k ? localStorage.setItem('gemini_api_key', k) : localStorage.removeItem('gemini_api_key');
-      updateBadge(!!k);
-      toggleModal();
+      updateBadge(!!k); toggleModal();
     }
-
     if (apiKey) { $('gemini-api-key').value = apiKey; updateBadge(true); }
 
-    function selectMode(m) {
-      currentMode = m;
-      Object.keys(MODES).forEach(k => {
-        $(`card-${k}`).classList.remove('card-active-blue', 'card-active-teal', 'card-active-purple');
-        $(`badge-${k}`).classList.add('hidden');
-      });
-      const [cls, title, desc, btn, ph] = MODES[m];
-      $(`card-${m}`).classList.add(cls);
-      $(`badge-${m}`).classList.remove('hidden');
-      $('action-title').textContent = title;
-      $('action-desc').textContent = desc;
-      $('btn-text').textContent = btn;
-      $('lesson-textarea').placeholder = ph;
-      $('qa-question-box').classList.toggle('hidden', m !== 'qa');
-      if (m === 'qa') switchInput('text');
+    // Sidebar ย่อ-ขยาย & ปรับความกว้าง
+    function toggleSidebar() {
+      const sb = $('sidebar');
+      sidebarOpen = !sidebarOpen;
+      if (sidebarOpen) { sb.style.width = lastWidth + 'px'; sb.classList.remove('border-none'); }
+      else { lastWidth = sb.offsetWidth || 260; sb.style.width = '0px'; sb.classList.add('border-none'); }
+    }
+    const resizer = $('sidebar-resizer');
+    resizer.addEventListener('mousedown', () => {
+      if (!sidebarOpen) return;
+      resizer.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      const onMove = e => { const w = Math.min(450, Math.max(180, e.clientX)); $('sidebar').style.width = w + 'px'; lastWidth = w; };
+      const onUp = () => { resizer.classList.remove('dragging'); document.body.style.cursor = ''; window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    });
+
+    // จัดการโปรเจ็กต์และประวัติแชต
+    function renderProjects() {
+      const list = $('project-list');
+      if (!projects.length) {
+        list.innerHTML = `<div class="text-center text-xs text-slate-500 py-8">ยังไม่มีโปรเจ็กต์<br>เริ่มพิมพ์ด้านล่างได้เลย</div>`;
+        return;
+      }
+      list.innerHTML = projects.map(p => {
+        const m = MODE_META[p.mode] || MODE_META.summary;
+        return `
+          <div onclick="loadProject('${p.id}')" class="group flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl cursor-pointer transition ${p.id === activeProjectId ? 'bg-white/10 border border-white/15' : 'hover:bg-white/5 border border-transparent'}">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0 ${m.dot}"></span>
+              <div class="truncate">
+                <div class="text-xs font-medium text-slate-200 truncate">${esc(p.title)}</div>
+                <span class="inline-block text-[10px] px-1.5 rounded border ${m.badge}">${m.label}</span>
+              </div>
+            </div>
+            <button onclick="deleteProject(event,'${p.id}')" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-400 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </div>`;
+      }).join('');
+      lucide.createIcons();
     }
 
-    function switchInput(t) {
-      const isFile = t === 'file';
-      const active = 'px-3.5 py-1.5 rounded-md text-xs font-medium bg-[#162447] text-[#00D2FF] shadow transition';
-      const idle = 'px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition';
-      $('tab-file').className = isFile ? active : idle;
-      $('tab-text').className = isFile ? idle : active;
-      $('input-file-area').classList.toggle('hidden', !isFile);
-      $('input-text-area').classList.toggle('hidden', isFile);
+    function persistProjects() {
+      if (projects.length > 30) projects.length = 30;
+      localStorage.setItem('study_projects', JSON.stringify(projects));
+      renderProjects();
     }
+
+    function loadProject(id) {
+      const p = projects.find(x => x.id === id);
+      if (!p) return;
+      activeProjectId = id;
+      $('mode-select').value = p.mode;
+      onModeChange();
+      $('welcome-view').classList.add('hidden');
+      $('chat-thread').classList.remove('hidden');
+      $('chat-thread').innerHTML = (p.messages || [{ role: 'ai', mode: p.mode, html: p.html }]).map(renderBubble).join('');
+      lucide.createIcons();
+      scrollChat();
+      renderProjects();
+    }
+
+    function deleteProject(e, id) {
+      e.stopPropagation();
+      projects = projects.filter(x => x.id !== id);
+      persistProjects();
+      if (activeProjectId === id) resetWorkspace();
+    }
+
+    function resetWorkspace() {
+      activeProjectId = null;
+      $('lesson-textarea').value = '';
+      autoResize($('lesson-textarea'));
+      clearAttachment();
+      $('chat-thread').innerHTML = '';
+      $('chat-thread').classList.add('hidden');
+      $('welcome-view').classList.remove('hidden');
+      renderProjects();
+    }
+
+    // แสดงผล Bubble แบบ AI Chat ทั่วไป
+    function renderBubble(msg) {
+      const m = MODE_META[msg.mode] || MODE_META.summary;
+      if (msg.role === 'user') {
+        return `
+          <div class="flex justify-end">
+            <div class="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-br-sm bg-[#162447] border border-white/10 px-4 py-3 text-sm text-white shadow-md space-y-2">
+              <div class="flex items-center gap-1.5 text-[11px] text-slate-300">
+                <span class="w-2 h-2 rounded-full ${m.dot}"></span><span>${m.label}</span>
+              </div>
+              ${msg.attachment ? `<div class="inline-flex items-center gap-1.5 text-xs bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-cyan-300"><i data-lucide="paperclip" class="w-3 h-3"></i> ${esc(msg.attachment)}</div>` : ''}
+              ${msg.imgSrc ? `<img src="${msg.imgSrc}" class="max-h-48 rounded-xl border border-white/10">` : ''}
+              ${msg.text ? `<div class="whitespace-pre-wrap leading-relaxed">${esc(msg.text)}</div>` : ''}
+            </div>
+          </div>`;
+      }
+      return `
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#00D2FF] to-[#8B5CF6] flex items-center justify-center shrink-0 mt-0.5 shadow">
+            <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+          </div>
+          <div class="flex-1 min-w-0 glass rounded-2xl rounded-tl-sm p-4 sm:p-5 border border-white/10 space-y-3">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+              <span class="text-xs font-medium text-cyan-300 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full ${m.dot}"></span> AI Study Assistant • ${m.label}</span>
+              <button onclick="copyBubble(this)" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition"><i data-lucide="copy" class="w-3.5 h-3.5"></i> คัดลอก</button>
+            </div>
+            <div class="ai-body text-sm text-slate-200 leading-relaxed space-y-2">${msg.html}</div>
+          </div>
+        </div>`;
+    }
+
+    function scrollChat() {
+      const box = $('chat-scroll');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function copyBubble(btn) {
+      const txt = btn.closest('.glass').querySelector('.ai-body').innerText;
+      navigator.clipboard.writeText(txt).then(() => {
+        const old = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> คัดลอกแล้ว`;
+        lucide.createIcons();
+        setTimeout(() => { btn.innerHTML = old; lucide.createIcons(); }, 1500);
+      });
+    }
+
+    // Input & Attachments
+    function onModeChange() { $('lesson-textarea').placeholder = MODE_META[$('mode-select').value].ph; }
+    function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px'; }
+    function clearAttachment() { attachedFileText = ''; attachedImage = null; attachLabel = ''; $('file-upload').value = ''; $('attachment-bar').classList.add('hidden'); }
 
     async function handleFile(e) {
       const file = e.target.files[0];
       if (!file) return;
-      const disp = $('file-name-display');
-      disp.innerHTML = `<span class="text-[#00D2FF]">กำลังอ่านไฟล์:</span> ${esc(file.name)}...`;
+      clearAttachment();
+      $('attachment-bar').classList.remove('hidden');
+      $('attachment-name').textContent = `กำลังโหลด: ${file.name}...`;
       try {
-        let text = '';
-        if (file.type === 'application/pdf') {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            attachedImage = { mimeType: file.type, data: reader.result.split(',')[1], src: reader.result };
+            attachLabel = file.name;
+            $('attachment-name').textContent = `รูปภาพ: ${file.name}`;
+          };
+          reader.readAsDataURL(file);
+        } else if (file.type === 'application/pdf') {
           const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            text += (await page.getTextContent()).items.map(x => x.str).join(' ') + '\n';
-          }
-        } else text = await file.text();
-        $('lesson-textarea').value = text.trim();
-        disp.innerHTML = `<span class="text-emerald-400">อ่านไฟล์สำเร็จ:</span> ${esc(file.name)} (${text.length} ตัวอักษร)`;
-        switchInput('text');
-      } catch {
-        disp.innerHTML = `<span class="text-rose-400">เกิดข้อผิดพลาดในการอ่านไฟล์ กรุณาลองวางข้อความแทน</span>`;
-      }
+          let txt = '';
+          for (let i = 1; i <= pdf.numPages; i++) txt += (await (await pdf.getPage(i)).getTextContent()).items.map(x => x.str).join(' ') + '\n';
+          attachedFileText = txt.trim();
+          attachLabel = `${file.name} (${attachedFileText.length} ตัวอักษร)`;
+          $('attachment-name').textContent = `ไฟล์ PDF: ${attachLabel}`;
+        } else {
+          attachedFileText = (await file.text()).trim();
+          attachLabel = `${file.name} (${attachedFileText.length} ตัวอักษร)`;
+          $('attachment-name').textContent = `ไฟล์ข้อความ: ${attachLabel}`;
+        }
+      } catch { $('attachment-name').textContent = `ไม่สามารถอ่านไฟล์ ${file.name} ได้`; }
     }
 
+    // ส่งข้อความและตอบกลับในแชต
     async function processContent() {
-      const raw = $('lesson-textarea').value.trim(), q = $('specific-question').value.trim();
-      if (!raw && !q) return alert('กรุณาพิมพ์คำถาม หรือวางเนื้อหาบทเรียนก่อนกดวิเคราะห์ครับ');
-      $('result-section').classList.remove('hidden');
-      $('loading-state').classList.remove('hidden');
-      $('output-content').innerHTML = '';
-      $('result-section').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const inputTxt = $('lesson-textarea').value.trim();
+      const combined = [inputTxt, attachedFileText].filter(Boolean).join('\n\n');
+      if (!combined && !attachedImage) return;
 
+      const mode = $('mode-select').value;
+      const curImg = attachedImage, curLabel = attachLabel;
+      const title = (inputTxt || curLabel || MODE_META[mode].label).slice(0, 36);
+
+      // สร้างหรือดึงโปรเจ็กต์ปัจจุบัน
+      let proj = projects.find(x => x.id === activeProjectId);
+      if (!proj) {
+        proj = { id: Date.now().toString(), mode, title, messages: [] };
+        projects.unshift(proj);
+        activeProjectId = proj.id;
+      }
+
+      const userMsg = { role: 'user', mode, text: inputTxt, attachment: curLabel, imgSrc: curImg?.src || '' };
+      proj.messages.push(userMsg);
+      persistProjects();
+
+      // ล้างช่องพิมพ์ทันทีเหมือน AI ทั่วไป
+      $('lesson-textarea').value = '';
+      autoResize($('lesson-textarea'));
+      clearAttachment();
+
+      // แสดงข้อความผู้ใช้ + สถานะกำลังพิมพ์ของ AI
+      $('welcome-view').classList.add('hidden');
+      const thread = $('chat-thread');
+      thread.classList.remove('hidden');
+      thread.insertAdjacentHTML('beforeend', renderBubble(userMsg));
+
+      const typingId = 'typing-' + Date.now();
+      thread.insertAdjacentHTML('beforeend', `
+        <div id="${typingId}" class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#00D2FF] to-[#8B5CF6] flex items-center justify-center shrink-0"><i data-lucide="sparkles" class="w-4 h-4 text-white"></i></div>
+          <div class="glass rounded-2xl rounded-tl-sm px-4 py-3 border border-white/10 flex items-center gap-2 text-xs text-slate-300">
+            <span class="w-2 h-2 rounded-full bg-[#00D2FF] animate-bounce"></span>
+            <span class="w-2 h-2 rounded-full bg-[#00D2FF] animate-bounce [animation-delay:.15s]"></span>
+            <span class="w-2 h-2 rounded-full bg-[#00D2FF] animate-bounce [animation-delay:.3s]"></span>
+            <span class="ml-1">AI กำลังคิดคำตอบ...</span>
+          </div>
+        </div>`);
+      lucide.createIcons();
+      scrollChat();
+
+      let aiHtml = '';
       if (apiKey) {
         try {
-          $('output-content').innerHTML = await callGemini(raw, q);
-          $('loading-state').classList.add('hidden');
-          return;
+          aiHtml = await callGemini(mode, combined, curImg, proj.messages);
         } catch (err) {
-          $('loading-state').classList.add('hidden');
-          $('output-content').innerHTML = `<div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200 space-y-2"><div><strong>เกิดข้อผิดพลาดในการเชื่อมต่อ API:</strong> ${esc(err.message)}</div><div class="text-xs text-slate-300">ระบบได้สลับมาแสดงผลการวิเคราะห์เบื้องต้นให้ด้านล่างแทน หรือตรวจสอบสิทธิ์ของ API Key ที่เมนู "ตั้งค่า API Key"</div></div>${localFallback(raw, q)}`;
-          return;
+          aiHtml = `<div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs mb-2"><strong>ข้อผิดพลาด API:</strong> ${esc(err.message)}</div>${localFallback(mode, combined)}`;
         }
+      } else {
+        await new Promise(r => setTimeout(r, 500));
+        aiHtml = localFallback(mode, combined || '[รูปภาพที่แนบ]');
       }
-      setTimeout(() => { $('loading-state').classList.add('hidden'); $('output-content').innerHTML = localFallback(raw, q); }, 600);
+
+      $(typingId)?.remove();
+      const aiMsg = { role: 'ai', mode, html: aiHtml };
+      proj.messages.push(aiMsg);
+      persistProjects();
+      thread.insertAdjacentHTML('beforeend', renderBubble(aiMsg));
+      lucide.createIcons();
+      scrollChat();
     }
 
-    async function callGemini(content, q) {
-      $('result-header').textContent = MODES[currentMode][5];
+    async function callGemini(mode, content, img, history) {
       const prompts = {
-        summary: `จงสรุปใจความสำคัญจากเนื้อหาต่อไปนี้ให้อ่านเข้าใจง่าย เป็นข้อๆ (Bullet points) ภาษาไทยที่กระชับและชัดเจน:\n\nเนื้อหา:\n${content}`,
-        qa: q && content ? `อ้างอิงจากเนื้อหาที่ให้มานี้เท่านั้น จงตอบคำถามให้ตรงประเด็นและชัดเจน:\n\nเนื้อหา:\n${content}\n\nคำถาม:\n${q}` : `จงตอบคำถามต่อไปนี้อย่างละเอียด เข้าใจง่าย พร้อมยกตัวอย่างประกอบ:\n\nคำถาม:\n${q || content}`,
-        quiz: `จากเนื้อหาต่อไปนี้ จงสร้างข้อสอบปรนัย 4 ตัวเลือก (ก, ข, ค, ง) จำนวน 3 ข้อ ที่ถามตรงกับเนื้อหาที่ให้มา พร้อมระบุข้อที่ถูกต้องและคำอธิบายเฉลยสั้นๆ:\n\nเนื้อหา:\n${content}`
+        summary: `จงสรุปใจความสำคัญจากเนื้อหาหรือรูปภาพต่อไปนี้ให้อ่านเข้าใจง่าย เป็นข้อๆ (Bullet points) ภาษาไทยที่กระชับและชัดเจน:\n\n${content}`,
+        qa: `จงตอบคำถามหรืออธิบายเนื้อหาจากข้อมูล/รูปภาพต่อไปนี้อย่างละเอียด เข้าใจง่าย ตรงประเด็น:\n\n${content}`,
+        quiz: `จากเนื้อหาหรือรูปภาพต่อไปนี้ จงสร้างข้อสอบปรนัย 4 ตัวเลือก (ก, ข, ค, ง) จำนวน 3 ข้อ พร้อมระบุข้อที่ถูกต้องและคำอธิบายเฉลยสั้นๆ:\n\n${content}`
       };
+
+      // แนบประวัติการคุยก่อนหน้าในโปรเจ็กต์เดียวกันเพื่อให้ถามต่อได้ต่อเนื่อง
+      const contents = history.slice(0, -1).map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.role === 'user' ? (m.text || m.attachment || 'วิเคราะห์ข้อมูล') : m.html.replace(/<[^>]+>/g, ' ') }]
+      }));
+
+      const parts = [{ text: prompts[mode] }];
+      if (img) parts.push({ inline_data: { mime_type: img.mimeType, data: img.data } });
+      contents.push({ role: 'user', parts });
+
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompts[currentMode] }] }] })
+        body: JSON.stringify({ contents })
       });
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error?.message || `HTTP Error ${res.status}`);
       const txt = (await res.json()).candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับข้อความตอบกลับจากระบบ';
-      return `<div class="p-5 rounded-xl bg-[#070B19]/80 border border-white/10 leading-relaxed text-slate-200">${esc(txt).replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-300">$1</strong>').replace(/\n/g, '<br>')}</div>`;
+      return esc(txt).replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-300">$1</strong>').replace(/\n/g, '<br>');
     }
 
-    function localFallback(raw, q) {
+    function localFallback(mode, raw) {
       const sents = raw.split(/[\n\r]+|(?<=[.!?])\s+/).map(s => s.trim()).filter(s => s.length > 5);
-      if (currentMode === 'summary') {
-        $('result-header').textContent = 'สรุปประเด็นสำคัญจากเนื้อหาที่คุณป้อน';
+      if (mode === 'summary') {
         const pts = sents.length ? sents.slice(0, 5) : [raw];
-        return `<div class="p-5 rounded-xl bg-[#070B19]/80 border border-white/10 space-y-3"><p class="text-cyan-300 font-medium">สรุปใจความสำคัญ (${pts.length} ประเด็นหลักจากข้อความของคุณ):</p><ul class="list-disc list-inside space-y-2 text-slate-300">${pts.map(p => `<li>${esc(p)}</li>`).join('')}</ul></div>`;
+        return `<p class="text-cyan-300 font-medium">สรุปใจความสำคัญ (${pts.length} ประเด็นหลัก):</p><ul class="list-disc list-inside space-y-1 text-slate-300">${pts.map(p => `<li>${esc(p)}</li>`).join('')}</ul>`;
       }
-      if (currentMode === 'qa') {
-        $('result-header').textContent = 'ผลการวิเคราะห์คำถามเบื้องต้น';
-        return `<div class="p-5 rounded-xl bg-[#070B19]/80 border border-white/10 space-y-3"><p class="text-teal-300 font-medium">คำถามของคุณ: "${esc(q || raw)}"</p><p class="text-slate-300">กรุณาใส่ Gemini API Key ที่เมนู <strong>"ตั้งค่า API Key"</strong> มุมขวาบน เพื่อให้ AI ประมวลผลคำตอบเชิงลึกสำหรับคำถามนี้ครับ</p></div>`;
+      if (mode === 'qa') {
+        return `<p class="text-teal-300 font-medium">คำถาม: "${esc(raw.slice(0, 120))}"</p><p class="text-slate-300">กรุณาใส่ Gemini API Key ที่เมนู <strong>"ตั้งค่า API Key"</strong> มุมขวาบน เพื่อให้ AI สนทนาและตอบคำถามได้อย่างสมบูรณ์</p>`;
       }
-      $('result-header').textContent = 'ตัวอย่างแบบทดสอบเบื้องต้น';
-      return `<div class="p-5 rounded-xl bg-[#070B19]/80 border border-white/10 space-y-3"><p class="text-purple-300 font-medium">ข้อที่ 1: เนื้อหาหลักที่กล่าวถึงในบทเรียนนี้คือข้อใด?</p><p class="text-slate-300 text-xs">อ้างอิง: "${esc((sents[0] || raw).substring(0, 120))}..."</p><p class="text-slate-400 text-xs pt-2">* ใส่ Gemini API Key เพื่อสร้างข้อสอบปรนัย 4 ตัวเลือกพร้อมเฉลยอัตโนมัติเต็มรูปแบบ</p></div>`;
+      return `<p class="text-purple-300 font-medium">ตัวอย่างข้อสอบเบื้องต้น:</p><p class="text-slate-300 text-xs">ข้อ 1: เนื้อหาหลักที่กล่าวถึงในบทเรียนนี้คือข้อใด? (อ้างอิง: "${esc((sents[0] || raw).slice(0, 100))}...")</p><p class="text-slate-400 text-xs">* ใส่ Gemini API Key เพื่อสร้างข้อสอบปรนัย 4 ตัวเลือกพร้อมเฉลยอัตโนมัติ</p>`;
     }
 
-    function copyResult() {
-      const t = $('output-content').innerText;
-      if (t) navigator.clipboard.writeText(t).then(() => alert('คัดลอกผลลัพธ์เรียบร้อยแล้ว!'));
-    }
+    renderProjects();
   </script>
 </body>
 </html>
