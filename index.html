@@ -18,6 +18,7 @@
     .btn-gradient:hover{opacity:.9;box-shadow:0 4px 14px rgba(99,102,241,.35)}
     .resizer{width:4px;cursor:col-resize;transition:.2s}
     .resizer:hover,.resizer.dragging{background:#00D2FF}
+    .mask-key{-webkit-text-security:disc}
     ::-webkit-scrollbar{width:5px;height:5px}
     ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.35);border-radius:99px}
   </style>
@@ -32,7 +33,7 @@
       </div>
     </div>
     <div id="search-box" class="hidden px-3 pb-2">
-      <input id="project-search" oninput="renderProjects()" placeholder="ค้นหาชื่อโปรเจ็กต์..." class="w-full rounded-lg bg-[#0B132B] border border-white/10 focus:border-[#00D2FF] px-3 py-1.5 text-xs text-white placeholder-slate-400 outline-none">
+      <input id="project-search" oninput="renderProjects()" placeholder="ค้นหาชื่อโปรเจ็กต์..." autocomplete="off" class="w-full rounded-lg bg-[#0B132B] border border-white/10 focus:border-[#00D2FF] px-3 py-1.5 text-xs text-white placeholder-slate-400 outline-none">
     </div>
     <nav class="px-2.5 py-1.5 space-y-1 border-b border-white/10 text-xs font-medium">
       <button onclick="resetWorkspace()" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white text-left"><i data-lucide="square-pen" class="w-4 h-4 text-[#00D2FF] shrink-0"></i><span>โปรเจ็กต์ใหม่</span></button>
@@ -65,10 +66,10 @@
         <h3 class="text-lg font-semibold flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-[#00B4DB]"></i> เชื่อมต่อ Gemini API</h3>
         <button onclick="toggleModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <p class="text-xs text-slate-600 leading-relaxed">นำ <strong>Gemini API Key</strong> (ขึ้นต้นด้วย <code>AIza...</code>) จาก <a href="https://aistudio.google.com/apikey" target="_blank" class="text-sky-600 underline font-medium">Google AI Studio</a> มาวางด้านล่าง</p>
-      <input type="password" id="gemini-api-key" placeholder="AIzaSy..." class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-[#00B4DB] px-3.5 py-2.5 text-sm outline-none">
+      <p class="text-xs text-slate-600 leading-relaxed">นำ <strong>Gemini API Key</strong> (เช่น <code>AIza...</code> หรือ <code>Alzq...</code>) จาก <a href="https://aistudio.google.com/apikey" target="_blank" class="text-sky-600 underline font-medium">Google AI Studio</a> มาวางด้านล่าง</p>
+      <input type="text" id="gemini-api-key" name="ai_studio_token_field" autocomplete="off" spellcheck="false" placeholder="วาง API Key ที่นี่..." class="mask-key w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-[#00B4DB] px-3.5 py-2.5 text-sm outline-none">
       <div class="flex justify-between items-center pt-1">
-        <button onclick="saveKey('')" class="text-xs text-slate-500 hover:text-rose-500 underline">ล้างคีย์</button>
+        <button onclick="clearAllData()" class="text-xs text-rose-500 hover:underline">ล้างคีย์และข้อมูลทั้งหมด</button>
         <button onclick="saveKey($('gemini-api-key').value.trim())" class="btn-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white">บันทึก API Key</button>
       </div>
     </div>
@@ -113,26 +114,36 @@
   <script>
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+    const KEY_STORE = 'study_ai_key_v2', PROJ_STORE = 'study_ai_projects_v2';
     const MODES = {
       summary: { label: 'สรุปบทเรียน', dot: 'bg-[#00D2FF]', ph: 'วางเนื้อหาบทเรียน หรือกด + เพื่อแนบไฟล์ PDF/รูปภาพที่ต้องการสรุป...' },
       qa: { label: 'ถาม AI', dot: 'bg-teal-400', ph: 'พิมพ์คำถามที่สงสัย หรือถามต่อเนื่องจากคำตอบด้านบนได้เลย...' },
       quiz: { label: 'สร้างแบบทดสอบ', dot: 'bg-purple-400', ph: 'วางเนื้อหาบทเรียน หรือแนบไฟล์เพื่อสร้างข้อสอบพร้อมเฉลย...' }
     };
 
-    let savedKey = localStorage.getItem('gemini_api_key') || '';
-    if (savedKey.startsWith('AQ.')) { localStorage.removeItem('gemini_api_key'); savedKey = ''; }
-    let currentMode = 'summary', apiKey = savedKey;
-    let projects = JSON.parse(localStorage.getItem('study_projects') || '[]');
+    // ล้างค่าจากเวอร์ชันเก่าออกทั้งหมดเพื่อไม่ให้คีย์ที่เสียหรือโปรเจ็กต์ค้างเด้งกลับมา
+    localStorage.removeItem('gemini_api_key');
+    localStorage.removeItem('study_projects');
+
+    let currentMode = 'summary', apiKey = localStorage.getItem(KEY_STORE) || '';
+    let projects = JSON.parse(localStorage.getItem(PROJ_STORE) || '[]');
     let activeProjectId = null, attachedFileText = '', attachedImage = null, attachLabel = '', sidebarOpen = true, lastWidth = 270;
 
-    const toggleModal = () => $('api-modal').classList.toggle('hidden');
+    const toggleModal = () => { $('gemini-api-key').value = apiKey; $('api-modal').classList.toggle('hidden'); };
     function saveKey(k, hide = true) {
-      apiKey = k; $('gemini-api-key').value = k;
-      k ? localStorage.setItem('gemini_api_key', k) : localStorage.removeItem('gemini_api_key');
+      apiKey = k.replace(/\s+/g, '');
+      $('gemini-api-key').value = apiKey;
+      apiKey ? localStorage.setItem(KEY_STORE, apiKey) : localStorage.removeItem(KEY_STORE);
       const d = $('api-dot');
-      d.className = `w-2.5 h-2.5 rounded-full shrink-0 ${k ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400'}`;
-      d.title = k ? 'เชื่อมต่อ AI API พร้อมใช้งานแล้ว' : 'ยังไม่ใส่ API Key';
+      d.className = `w-2.5 h-2.5 rounded-full shrink-0 ${apiKey ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400'}`;
+      d.title = apiKey ? 'เชื่อมต่อ AI API พร้อมใช้งานแล้ว' : 'ยังไม่ใส่ API Key';
       if (hide) toggleModal();
+    }
+    function clearAllData() {
+      projects = [];
+      localStorage.removeItem(PROJ_STORE);
+      saveKey('', true);
+      resetWorkspace();
     }
     saveKey(apiKey, false);
 
@@ -165,7 +176,11 @@
       lucide.createIcons();
     }
 
-    const persistProjects = () => { projects.length = Math.min(projects.length, 40); localStorage.setItem('study_projects', JSON.stringify(projects)); renderProjects(); };
+    const persistProjects = () => {
+      projects.length = Math.min(projects.length, 40);
+      projects.length ? localStorage.setItem(PROJ_STORE, JSON.stringify(projects)) : localStorage.removeItem(PROJ_STORE);
+      renderProjects();
+    };
     function loadProject(id) {
       const p = projects.find(x => x.id === id); if (!p) return;
       activeProjectId = id; selectMode(p.mode);
@@ -306,7 +321,7 @@
         return `<p class="text-sky-700 font-semibold">สรุปใจความสำคัญ (${pts.length} ประเด็นหลัก):</p><ul class="list-disc list-inside space-y-1 text-slate-700">${pts.map(p => `<li>${esc(p)}</li>`).join('')}</ul>`;
       }
       return mode === 'qa'
-        ? `<p class="text-teal-700 font-semibold">คำถาม: "${esc(raw.slice(0, 120))}"</p><p class="text-slate-700">กรุณาใส่ Gemini API Key (ขึ้นต้นด้วย AIza...) ที่เมนู <strong>"ตั้งค่า API Key"</strong> ทางแถบซ้าย</p>`
+        ? `<p class="text-teal-700 font-semibold">คำถาม: "${esc(raw.slice(0, 120))}"</p><p class="text-slate-700">กรุณาใส่ Gemini API Key ที่เมนู <strong>"ตั้งค่า API Key"</strong> ทางแถบซ้าย</p>`
         : `<p class="text-purple-700 font-semibold">ตัวอย่างข้อสอบเบื้องต้น:</p><p class="text-slate-700 text-xs">ข้อ 1: เนื้อหาหลักที่กล่าวถึงในบทเรียนนี้คือข้อใด? (อ้างอิง: "${esc((sents[0] || raw).slice(0, 100))}...")</p>`;
     }
 
