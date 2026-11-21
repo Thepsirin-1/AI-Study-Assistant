@@ -62,11 +62,11 @@
   <div id="api-modal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-slate-800">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-[#00B4DB]"></i> เชื่อมต่อ AI API</h3>
+        <h3 class="text-lg font-semibold flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-[#00B4DB]"></i> เชื่อมต่อ Gemini API</h3>
         <button onclick="toggleModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <p class="text-xs text-slate-600 leading-relaxed">รองรับทั้ง <strong>Vertex AI API Key</strong> (<code>AQ....</code>) และ <strong>Google AI Studio Key</strong> (<code>AIza...</code>)</p>
-      <input type="password" id="gemini-api-key" placeholder="วาง API Key ที่นี่..." class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-[#00B4DB] px-3.5 py-2.5 text-sm outline-none">
+      <p class="text-xs text-slate-600 leading-relaxed">นำ <strong>Gemini API Key</strong> (ขึ้นต้นด้วย <code>AIza...</code>) จาก <a href="https://aistudio.google.com/apikey" target="_blank" class="text-sky-600 underline font-medium">Google AI Studio</a> มาวางด้านล่าง</p>
+      <input type="password" id="gemini-api-key" placeholder="AIzaSy..." class="w-full rounded-xl bg-slate-50 border border-slate-300 focus:border-[#00B4DB] px-3.5 py-2.5 text-sm outline-none">
       <div class="flex justify-between items-center pt-1">
         <button onclick="saveKey('')" class="text-xs text-slate-500 hover:text-rose-500 underline">ล้างคีย์</button>
         <button onclick="saveKey($('gemini-api-key').value.trim())" class="btn-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white">บันทึก API Key</button>
@@ -113,21 +113,22 @@
   <script>
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
-    const DEFAULT_KEY = 'AQ.Ab8RN6JkrJ6I_vyAkv_Ws_GJ0woQDt6eT5ciMiBbHb35jJ3Ddg';
     const MODES = {
       summary: { label: 'สรุปบทเรียน', dot: 'bg-[#00D2FF]', ph: 'วางเนื้อหาบทเรียน หรือกด + เพื่อแนบไฟล์ PDF/รูปภาพที่ต้องการสรุป...' },
       qa: { label: 'ถาม AI', dot: 'bg-teal-400', ph: 'พิมพ์คำถามที่สงสัย หรือถามต่อเนื่องจากคำตอบด้านบนได้เลย...' },
       quiz: { label: 'สร้างแบบทดสอบ', dot: 'bg-purple-400', ph: 'วางเนื้อหาบทเรียน หรือแนบไฟล์เพื่อสร้างข้อสอบพร้อมเฉลย...' }
     };
 
-    let currentMode = 'summary', apiKey = localStorage.getItem('gemini_api_key') ?? DEFAULT_KEY;
+    let savedKey = localStorage.getItem('gemini_api_key') || '';
+    if (savedKey.startsWith('AQ.')) { localStorage.removeItem('gemini_api_key'); savedKey = ''; }
+    let currentMode = 'summary', apiKey = savedKey;
     let projects = JSON.parse(localStorage.getItem('study_projects') || '[]');
     let activeProjectId = null, attachedFileText = '', attachedImage = null, attachLabel = '', sidebarOpen = true, lastWidth = 270;
 
     const toggleModal = () => $('api-modal').classList.toggle('hidden');
     function saveKey(k, hide = true) {
       apiKey = k; $('gemini-api-key').value = k;
-      localStorage.setItem('gemini_api_key', k);
+      k ? localStorage.setItem('gemini_api_key', k) : localStorage.removeItem('gemini_api_key');
       const d = $('api-dot');
       d.className = `w-2.5 h-2.5 rounded-full shrink-0 ${k ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400'}`;
       d.title = k ? 'เชื่อมต่อ AI API พร้อมใช้งานแล้ว' : 'ยังไม่ใส่ API Key';
@@ -284,17 +285,11 @@
       const parts = [{ text: prompts[mode] }, ...(img ? [{ inline_data: { mime_type: img.mimeType, data: img.data } }] : [])];
       contents.at(-1)?.role === 'user' ? contents.at(-1).parts.push(...parts) : contents.push({ role: 'user', parts });
 
-      const k = encodeURIComponent(apiKey);
-      const endpoints = [
-        `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:generateContent?key=${k}`,
-        `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.0-flash:generateContent?key=${k}`,
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${k}`,
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${k}`
-      ];
-
       let lastErr = '';
-      for (const url of endpoints) {
-        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents }) });
+      for (const model of ['gemini-2.5-flash', 'gemini-2.0-flash']) {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents })
+        });
         if (res.ok) {
           const txt = (await res.json()).candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับข้อความตอบกลับจากระบบ';
           return esc(txt).replace(/\*\*(.*?)\*\*/g, '<strong class="text-sky-700 font-semibold">$1</strong>').replace(/\n/g, '<br>');
@@ -311,7 +306,7 @@
         return `<p class="text-sky-700 font-semibold">สรุปใจความสำคัญ (${pts.length} ประเด็นหลัก):</p><ul class="list-disc list-inside space-y-1 text-slate-700">${pts.map(p => `<li>${esc(p)}</li>`).join('')}</ul>`;
       }
       return mode === 'qa'
-        ? `<p class="text-teal-700 font-semibold">คำถาม: "${esc(raw.slice(0, 120))}"</p><p class="text-slate-700">กรุณาตรวจสอบ API Key ที่เมนู <strong>"ตั้งค่า API Key"</strong> ทางแถบซ้าย</p>`
+        ? `<p class="text-teal-700 font-semibold">คำถาม: "${esc(raw.slice(0, 120))}"</p><p class="text-slate-700">กรุณาใส่ Gemini API Key (ขึ้นต้นด้วย AIza...) ที่เมนู <strong>"ตั้งค่า API Key"</strong> ทางแถบซ้าย</p>`
         : `<p class="text-purple-700 font-semibold">ตัวอย่างข้อสอบเบื้องต้น:</p><p class="text-slate-700 text-xs">ข้อ 1: เนื้อหาหลักที่กล่าวถึงในบทเรียนนี้คือข้อใด? (อ้างอิง: "${esc((sents[0] || raw).slice(0, 100))}...")</p>`;
     }
 
